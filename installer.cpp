@@ -46,11 +46,8 @@ Installer::~Installer()
     delete ui;
 }
 
-void Installer::parseAndSetLinks(QByteArray &data)
+void Installer::parseAndSetLinks(const QByteArray &data)
 {
-    ui->linksButton->setEnabled(true);
-    ui->downloadButton->setEnabled(true);
-
     QXmlInputSource source;
     source.setData(data);
 
@@ -68,6 +65,8 @@ void Installer::parseAndSetLinks(QByteArray &data)
     ui->upgradeLinks->clear();
     ui->releaseLinks->addItems(handler->releaseLinks);
     ui->upgradeLinks->addItems(handler->upgradeLinks);
+
+    reset();
 }
 
 void Installer::saveAndUpdateProgress(QNetworkReply *reply)
@@ -125,7 +124,9 @@ void Installer::reset()
 {
     state = STATE_IDLE;
     bytesDownloaded = 0;
-    imageFile.close();
+    if (imageFile.isOpen()) {
+        imageFile.close();
+    }
     ui->linksButton->setEnabled(true);
     ui->downloadButton->setEnabled(true);
 }
@@ -163,13 +164,13 @@ void Installer::getDownloadLink()
     ui->downloadButton->setEnabled(false);
 
     QUrl url(ui->releaseLinks->currentText() + "/download");
-    qDebug() << url;
 
     manager.get(createRequest(url, 0, CHUNKSIZE));
 }
 
 void Installer::downloadImage(QNetworkReply *reply)
 {
+    // TODO: Sanity checks!
     state = STATE_DOWNLOADING_IMAGE;
     qlonglong first, last, total;
     qlonglong contentLength = reply->header(QNetworkRequest::ContentLengthHeader).toLongLong();
@@ -199,24 +200,19 @@ void Installer::fileListReply(QNetworkReply *reply)
     if(reply->error() == QNetworkReply::NoError)
     {
         QUrl redirectionUrl = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
-        int httpstatuscode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toUInt();
-#if 0
-        foreach (QByteArray header, reply->rawHeaderList()) {
-            qDebug() << header;
-        }
-#endif
+        int responseCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toUInt();
+
         switch (state) {
         case STATE_GETTING_LINKS:
-            if (httpstatuscode == RESPONSE_OK && reply->isReadable()) {
-                //Assuming this is a human readable file replyString now contains the file
-                replyData = reply->readAll();
-                parseAndSetLinks(replyData);
-                QFile file("foo.xml");
+            if (responseCode == RESPONSE_OK && reply->isReadable()) {
+                parseAndSetLinks(reply->readAll());
+                QFile file("foo.xml"); // TODO: change file name
                 if (file.open(QFile::WriteOnly)) {
                     file.write(replyData);
                     file.close();
                 }
             }
+            reset();
             break;
         case STATE_GETTING_URL:
             if (redirectionUrl.isValid()) {
@@ -224,7 +220,7 @@ void Installer::fileListReply(QNetworkReply *reply)
                 QNetworkRequest request = reply->request();
                 request.setUrl(redirectionUrl);
                 manager.get(request);
-                qDebug() << redirectionUrl;
+                qDebug() << "Redirected to:" << redirectionUrl;
                 break;
             }
 
@@ -232,20 +228,22 @@ void Installer::fileListReply(QNetworkReply *reply)
             downloadImage(reply);
             break;
         case STATE_DOWNLOADING_IMAGE:
-            switch (httpstatuscode) {
+            switch (responseCode) {
             case RESPONSE_FOUND:
             case RESPONSE_REDIRECT:
+                // Shouldn't happen!
                 break;
             case RESPONSE_OK:
-                // Probably small file
+                // Probably a small file
                 imageFile.write(reply->readAll());
-                reset();
                 ui->progressBar->setValue(ui->progressBar->maximum());
+                reset();
                 break;
             case RESPONSE_PARTIAL:
                 saveAndUpdateProgress(reply);
                 break;
             default:
+                qDebug() << "Unhandled reply:" << responseCode;
                 break;
             }
             break; // downloading image

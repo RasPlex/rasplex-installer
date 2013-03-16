@@ -23,7 +23,7 @@ private:
     QXmlSimpleReader xmlReader;
     QNetworkAccessManager manager;
 
-    void parseAndSetLinks(QByteArray &data);
+    void parseAndSetLinks(const QByteArray &data);
     void saveAndUpdateProgress(QNetworkReply *reply);
     void extractByteOffsetsFromContentLength(qlonglong &first, qlonglong &last, qlonglong &total, QString s);
     void reset();
