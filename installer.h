@@ -5,6 +5,8 @@
 #include <QtXml>
 #include <QNetworkAccessManager>
 
+#include "diskwriter.h"
+
 namespace Ui {
 class Installer;
 }
@@ -29,6 +31,7 @@ private:
     void reset();
     QByteArray rangeByteArray(qlonglong first, qlonglong last);
     QNetworkRequest createRequest(QUrl &url, qlonglong first, qlonglong last);
+    unsigned int getUncompressedImageSize();
 
     enum {
         RESPONSE_OK = 200,
@@ -46,14 +49,18 @@ private:
     } state;
 
     qlonglong bytesDownloaded;
+    QString imageFileName;
     QFile imageFile;
     QUrl downloadUrl;
+    DiskWriter diskWriter;
 
 private slots:
     void updateLinks();
     void getDownloadLink();
     void downloadImage(QNetworkReply *reply);
     void fileListReply(QNetworkReply *reply);
+    void getImageFileNameFromUser();
+    void writeImageToDevice();
 };
 
 #endif // INSTALLER_H

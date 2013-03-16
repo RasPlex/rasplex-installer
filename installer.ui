@@ -74,6 +74,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="loadButton">
+       <property name="text">
+        <string>Load image from file</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -87,6 +94,13 @@
       </spacer>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QPushButton" name="writeButton">
+     <property name="text">
+      <string>Write SD card</string>
+     </property>
+    </widget>
    </item>
    <item>
     <spacer name="verticalSpacer">

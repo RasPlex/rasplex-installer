@@ -14,9 +14,11 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         installer.cpp \
-    xmlhandler.cpp
+    xmlhandler.cpp \
+    diskwriter.cpp
 
 HEADERS  += installer.h \
-    xmlhandler.h
+    xmlhandler.h \
+    diskwriter.h
 
 FORMS    += installer.ui
