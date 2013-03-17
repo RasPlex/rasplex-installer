@@ -10,8 +10,6 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 
-#include "zlib.h"
-
 // TODO: Get chunk size from server, or whatever
 #define CHUNKSIZE 1*1024*1024
 
@@ -29,6 +27,7 @@ Installer::Installer(QWidget *parent) :
     connect(ui->downloadButton, SIGNAL(clicked()), this, SLOT(getDownloadLink()));
     connect(ui->loadButton, SIGNAL(clicked()), this, SLOT(getImageFileNameFromUser()));
     connect(ui->writeButton, SIGNAL(clicked()), this, SLOT(writeImageToDevice()));
+    connect(&diskWriter, SIGNAL(bytesWritten(int)), ui->progressBar, SLOT(setValue(int)));
 
     xmlHandler *handler = new xmlHandler;
     xmlReader.setContentHandler(handler);
@@ -134,6 +133,16 @@ void Installer::reset()
     }
     ui->linksButton->setEnabled(true);
     ui->downloadButton->setEnabled(true);
+    ui->writeButton->setEnabled(true);
+    ui->loadButton->setEnabled(true);
+}
+
+void Installer::disableControls()
+{
+    ui->linksButton->setEnabled(false);
+    ui->downloadButton->setEnabled(false);
+    ui->writeButton->setEnabled(false);
+    ui->loadButton->setEnabled(false);
 }
 
 QByteArray Installer::rangeByteArray(qlonglong first, qlonglong last)
@@ -183,9 +192,9 @@ unsigned int Installer::getUncompressedImageSize()
 
 void Installer::updateLinks()
 {
-    ui->linksButton->setEnabled(false);
-    ui->downloadButton->setEnabled(false);
     state = STATE_GETTING_LINKS;
+    disableControls();
+
     QUrl url("http://sourceforge.net/api/file/index/project-id/1284489/atom");
     manager.get(QNetworkRequest(url));
 }
@@ -193,12 +202,9 @@ void Installer::updateLinks()
 void Installer::getDownloadLink()
 {
     state = STATE_GETTING_URL;
-
-    ui->linksButton->setEnabled(false);
-    ui->downloadButton->setEnabled(false);
+    disableControls();
 
     QUrl url(ui->releaseLinks->currentText() + "/download");
-
     manager.get(createRequest(url, 0, CHUNKSIZE));
 }
 
@@ -301,12 +307,7 @@ void Installer::getImageFileNameFromUser()
 
 void Installer::writeImageToDevice()
 {
-    int r;
-    char buf[1024];
-    // imageFile should be closed
-    if (imageFile.isOpen()) {
-        return;
-    }
+    disableControls();
 
     ui->progressBar->setValue(0);
     ui->progressBar->setMaximum(getUncompressedImageSize());
@@ -314,37 +315,18 @@ void Installer::writeImageToDevice()
     // TODO: make portable
     QString destination = QFileDialog::getSaveFileName(this, tr("Select device"), "/dev/");
     if (destination.isNull()) {
+        reset();
         return;
     }
 
     // TODO: Sanity check
     diskWriter.open(destination);
-
-    // Open source
-    gzFile src = gzopen(imageFileName.toStdString().c_str(), "rb");
-    if (src == NULL) {
-        diskWriter.close();
-        qDebug() << "Couldn't open file:" << imageFileName;
+    if (!diskWriter.writeCompressedImageToRemovableDevice(imageFileName)) {
+        qDebug() << "Writing failed";
+        reset();
+        return;
     }
 
-    if (gzbuffer(src, 128*1024) != 0) {
-        qDebug() << "Failed to set buffer size";
-    }
-
-    r = gzread(src, buf, sizeof(buf));
-    while (r > 0) {
-        // TODO: Sanity check
-        diskWriter.write(buf, r);
-        ui->progressBar->setValue(gztell(src));
-        r = gzread(src, buf, sizeof(buf));
-    }
-
-    if (r < 0) {
-        qDebug() << "Error reading file!";
-    }
-    diskWriter.close();
-    gzclose_r(src);
-
-    //ui->progressBar->setValue(ui->progressBar->maximum());
+    reset();
     qDebug() << "Writing done!";
 }

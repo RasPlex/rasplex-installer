@@ -29,6 +29,7 @@ private:
     void saveAndUpdateProgress(QNetworkReply *reply);
     void extractByteOffsetsFromContentLength(qlonglong &first, qlonglong &last, qlonglong &total, QString s);
     void reset();
+    void disableControls();
     QByteArray rangeByteArray(qlonglong first, qlonglong last);
     QNetworkRequest createRequest(QUrl &url, qlonglong first, qlonglong last);
     unsigned int getUncompressedImageSize();
