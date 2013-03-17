@@ -204,6 +204,14 @@ void Installer::getDownloadLink()
     state = STATE_GETTING_URL;
     disableControls();
 
+    // Try to find file name in url
+    int idx = ui->releaseLinks->currentText().lastIndexOf('/');
+    if (idx > 0) {
+        imageFileName = ui->releaseLinks->currentText().remove(0, idx+1);
+        imageFile.setFileName(imageFileName);
+        qDebug() << "Image file name:" << imageFileName;
+    }
+
     QUrl url(ui->releaseLinks->currentText() + "/download");
     manager.get(createRequest(url, 0, CHUNKSIZE));
 }
@@ -246,7 +254,7 @@ void Installer::fileListReply(QNetworkReply *reply)
         case STATE_GETTING_LINKS:
             if (responseCode == RESPONSE_OK && reply->isReadable()) {
                 parseAndSetLinks(reply->readAll());
-                QFile file("foo.xml"); // TODO: change file name
+                QFile file("sf_data.xml");
                 if (file.open(QFile::WriteOnly)) {
                     file.write(replyData);
                     file.close();
