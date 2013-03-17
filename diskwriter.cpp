@@ -40,6 +40,34 @@ int DiskWriter::write(const char *buf, size_t n)
     return dev.write(buf, n);
 }
 
-#elif Q_OS_WIN32
-    // TODO
+#elif defined(Q_OS_WIN32)
+DiskWriter::DiskWriter()
+{
+}
+
+DiskWriter::~DiskWriter()
+{
+}
+
+int DiskWriter::open(QString device)
+{
+    if (device.isEmpty()) {
+        return -1;
+    }
+    return -1;
+}
+
+void DiskWriter::close()
+{
+}
+
+bool DiskWriter::isOpen()
+{
+    return false;
+}
+
+int DiskWriter::write(const char *buf, size_t n)
+{
+    return -1;
+}
 #endif

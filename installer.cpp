@@ -10,7 +10,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 
-#include <zlib.h>
+#include "zlib.h"
 
 // TODO: Get chunk size from server, or whatever
 #define CHUNKSIZE 1*1024*1024

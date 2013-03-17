@@ -19,6 +19,10 @@ SOURCES += main.cpp\
 
 HEADERS  += installer.h \
     xmlhandler.h \
-    diskwriter.h
+    diskwriter.h \
+    zlib.h \
+    zconf.h
 
 FORMS    += installer.ui
+
+LIBS += -L3rd-party -lz

@@ -4,7 +4,7 @@
 #include <QString>
 #ifdef Q_OS_UNIX
 #include <QFile>
-#elif Q_OS_WIN32
+#elif defined(Q_OS_WIN32)
 // TODO
 #endif
 
@@ -23,7 +23,7 @@ private:
     // Device data (fd's, handles, etc)
 #ifdef Q_OS_UNIX
     QFile dev;
-#elif Q_OS_WIN32
+#elif defined(Q_OS_WIN32)
     // TODO
 #endif
 };
