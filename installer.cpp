@@ -10,6 +10,12 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 
+#if defined(Q_OS_WIN)
+#include "diskwriter_windows.h"
+#elif defined(Q_OS_UNIX)
+#include "diskwriter_unix.h"
+#endif
+
 // TODO: Get chunk size from server, or whatever
 #define CHUNKSIZE 1*1024*1024
 
@@ -22,12 +28,18 @@ Installer::Installer(QWidget *parent) :
     ui->setupUi(this);
     manager.setParent(this);
 
+#if defined(Q_OS_WIN)
+    diskWriter = new DiskWriter_windows(this);
+#elif defined(Q_OS_UNIX)
+    diskWriter = new DiskWriter_unix(this);
+#endif
+
     connect(&manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(fileListReply(QNetworkReply*)));
     connect(ui->linksButton, SIGNAL(clicked()), this, SLOT(updateLinks()));
     connect(ui->downloadButton, SIGNAL(clicked()), this, SLOT(getDownloadLink()));
     connect(ui->loadButton, SIGNAL(clicked()), this, SLOT(getImageFileNameFromUser()));
     connect(ui->writeButton, SIGNAL(clicked()), this, SLOT(writeImageToDevice()));
-    connect(&diskWriter, SIGNAL(bytesWritten(int)), ui->progressBar, SLOT(setValue(int)));
+    connect(diskWriter, SIGNAL(bytesWritten(int)), ui->progressBar, SLOT(setValue(int)));
 
     xmlHandler *handler = new xmlHandler;
     xmlReader.setContentHandler(handler);
@@ -328,8 +340,8 @@ void Installer::writeImageToDevice()
     }
 
     // TODO: Sanity check
-    diskWriter.open(destination);
-    if (!diskWriter.writeCompressedImageToRemovableDevice(imageFileName)) {
+    diskWriter->open(destination);
+    if (!diskWriter->writeCompressedImageToRemovableDevice(imageFileName)) {
         qDebug() << "Writing failed";
         reset();
         return;

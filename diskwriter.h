@@ -4,37 +4,21 @@
 #include <QString>
 #include <QObject>
 
-#ifdef Q_OS_UNIX
-#include <QFile>
-#elif defined(Q_OS_WIN32)
-#include <QFile>
-// TODO
-#endif
-
 class DiskWriter : public QObject
 {
     Q_OBJECT
 
 public:
-    DiskWriter(QObject *parent = 0);
-    ~DiskWriter();
+    DiskWriter(QObject *parent = 0) : QObject(parent) {}
+    virtual ~DiskWriter() {}
 
-    int open(QString device);
-    void close();
-    bool isOpen();
-    bool writeCompressedImageToRemovableDevice(QString filename);
+    virtual int open(const QString &device) = 0;
+    virtual void close() = 0;
+    virtual bool isOpen() = 0;
+    virtual bool writeCompressedImageToRemovableDevice(const QString &filename) = 0;
 
 signals:
     void bytesWritten(int);
-
-private:
-    // Device data (fd's, handles, etc)
-#ifdef Q_OS_UNIX
-    QFile dev;
-#elif defined(Q_OS_WIN)
-    QFile dev;
-    // TODO
-#endif
 };
 
 #endif // DISKWRITER_H

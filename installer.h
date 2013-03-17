@@ -5,7 +5,7 @@
 #include <QtXml>
 #include <QNetworkAccessManager>
 
-#include "diskwriter.h"
+class DiskWriter;
 
 namespace Ui {
 class Installer;
@@ -53,7 +53,7 @@ private:
     QString imageFileName;
     QFile imageFile;
     QUrl downloadUrl;
-    DiskWriter diskWriter;
+    DiskWriter *diskWriter;
 
 private slots:
     void updateLinks();
