@@ -24,6 +24,8 @@ HEADERS  += installer.h \
 win32 {
     SOURCES += diskwriter_windows.cpp
     HEADERS += diskwriter_windows.h
+
+    RC_FILE = rasplex-installer.rc
 }
 unix {
     SOURCES += diskwriter_unix.cpp

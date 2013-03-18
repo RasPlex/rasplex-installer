@@ -1,0 +1,4 @@
+#include <windows.h>
+
+#define MANIFEST_RESOURCE_ID 1
+MANIFEST_RESOURCE_ID RT_MANIFEST "rasplex-installer.exe.manifest"
