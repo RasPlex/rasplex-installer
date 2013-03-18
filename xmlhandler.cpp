@@ -15,10 +15,10 @@ bool xmlHandler::startElement(const QString&, const QString &localName, const QS
                 link = link.remove(n-1, link.size());
             }
         }
-        if (link.contains("release")) {
+        if (link.contains("release") && link.endsWith("img.gz")) {
             releaseLinks += link;
         }
-        if (link.contains("autoupdate")) {
+        if (link.contains("autoupdate") && link.endsWith("tar.bz2")) {
             upgradeLinks += link;
         }
     }
