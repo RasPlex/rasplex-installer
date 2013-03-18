@@ -81,8 +81,25 @@ void Installer::parseAndSetLinks(const QByteArray &data)
 
     ui->releaseLinks->clear();
     ui->upgradeLinks->clear();
-    ui->releaseLinks->addItems(handler->releaseLinks);
-    ui->upgradeLinks->addItems(handler->upgradeLinks);
+    // Add release links
+    foreach (QString link, handler->releaseLinks) {
+        QString version = link;
+        // Remove full url and ".img.gz"
+        int idx = link.lastIndexOf('-');
+        version.remove(0, idx+1);
+        version.chop(7);
+        ui->releaseLinks->addItem(version, link);
+    }
+
+    // Add upgrade links
+    foreach (QString link, handler->upgradeLinks) {
+        QString version = link;
+        // Remove full url and ".tar.bz2"
+        int idx = link.lastIndexOf('-');
+        version.remove(0, idx+1);
+        version.chop(8);
+        ui->upgradeLinks->addItem(version, link);
+    }
 
     reset();
 }
@@ -218,15 +235,16 @@ void Installer::getDownloadLink()
     state = STATE_GETTING_URL;
     disableControls();
 
+    QString link = ui->releaseLinks->itemData(ui->releaseLinks->currentIndex()).toString();
     // Try to find file name in url
-    int idx = ui->releaseLinks->currentText().lastIndexOf('/');
+    int idx = link.lastIndexOf('/');
     if (idx > 0) {
-        imageFileName = ui->releaseLinks->currentText().remove(0, idx+1);
+        imageFileName = link;
+        imageFileName.remove(0, idx+1);
         imageFile.setFileName(imageFileName);
-        qDebug() << "Image file name:" << imageFileName;
     }
 
-    QUrl url(ui->releaseLinks->currentText() + "/download");
+    QUrl url(link + "/download");
     manager.get(createRequest(url, 0, CHUNKSIZE));
 }
 
