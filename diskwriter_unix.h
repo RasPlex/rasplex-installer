@@ -11,10 +11,11 @@ public:
     explicit DiskWriter_unix(QObject *parent = 0);
     ~DiskWriter_unix();
 
-    int open(const QString &device);
+    int open(QString device);
     void close();
     bool isOpen();
     bool writeCompressedImageToRemovableDevice(const QString &filename);
+    QStringList getRemovableDeviceNames();
 
 private:
     QFile dev;

@@ -8,7 +8,7 @@ QT       += core gui xml network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = rasplex_installer
+TARGET = rasplex-installer
 TEMPLATE = app
 
 SOURCES += main.cpp\

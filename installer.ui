@@ -42,6 +42,16 @@
     </widget>
    </item>
    <item>
+    <widget class="QLabel" name="removableDevicesLabel">
+     <property name="text">
+      <string>Removable devices</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QComboBox" name="removableDevicesComboBox"/>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <spacer name="horizontalSpacer_2">

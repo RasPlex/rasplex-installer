@@ -17,7 +17,7 @@ DiskWriter_unix::~DiskWriter_unix()
     }
 }
 
-int DiskWriter_unix::open(const QString &device)
+int DiskWriter_unix::open(QString device)
 {
     dev.setFileName(device);
     if (!dev.open(QFile::WriteOnly)) {
@@ -83,4 +83,12 @@ bool DiskWriter_unix::writeCompressedImageToRemovableDevice(const QString &filen
     dev.close();
     gzclose_r(src);
     return true;
+}
+
+QStringList DiskWriter_unix::getRemovableDeviceNames()
+{
+    QStringList names;
+    // TODO: fix this
+    names << "/dev/mmcblk0" << "/dev/mmcblk1" << "/dev/mmcblk2" << "/dev/mmcblk3";
+    return names;
 }

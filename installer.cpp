@@ -34,6 +34,8 @@ Installer::Installer(QWidget *parent) :
     diskWriter = new DiskWriter_unix(this);
 #endif
 
+    ui->removableDevicesComboBox->addItems(diskWriter->getRemovableDeviceNames());
+
     connect(&manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(fileListReply(QNetworkReply*)));
     connect(ui->linksButton, SIGNAL(clicked()), this, SLOT(updateLinks()));
     connect(ui->downloadButton, SIGNAL(clicked()), this, SLOT(getDownloadLink()));
@@ -333,14 +335,21 @@ void Installer::writeImageToDevice()
     ui->progressBar->setMaximum(getUncompressedImageSize());
 
     // TODO: make portable
-    QString destination = QFileDialog::getSaveFileName(this, tr("Select device"), "/dev/");
+    QString destination = ui->removableDevicesComboBox->currentText();
     if (destination.isNull()) {
         reset();
         return;
     }
 
-    // TODO: Sanity check
-    diskWriter->open(destination);
+    // DiskWriter will re-open the image file.
+    if (imageFile.isOpen()) {
+        imageFile.close();
+    }
+
+    if (diskWriter->open(destination) < 0) {
+        qDebug() << "Failed to open image file";
+    }
+
     if (!diskWriter->writeCompressedImageToRemovableDevice(imageFileName)) {
         qDebug() << "Writing failed";
         reset();
