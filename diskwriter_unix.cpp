@@ -4,6 +4,7 @@
 
 #include <QDebug>
 #include <QApplication>
+#include <QDir>
 
 DiskWriter_unix::DiskWriter_unix(QObject *parent) :
     DiskWriter(parent)
@@ -88,7 +89,27 @@ bool DiskWriter_unix::writeCompressedImageToRemovableDevice(const QString &filen
 QStringList DiskWriter_unix::getRemovableDeviceNames()
 {
     QStringList names;
-    // TODO: fix this
-    names << "/dev/mmcblk0" << "/dev/mmcblk1" << "/dev/mmcblk2" << "/dev/mmcblk3";
+
+    QDir currentDir("/sys/block");
+    currentDir.setFilter(QDir::Dirs);
+
+    QStringList entries = currentDir.entryList();
+    foreach (QString device, entries) {
+        // Skip "." and ".." dir entries
+        if (device == "." || device == "..") {
+            continue;
+        }
+
+        QFile type("/sys/block/" + device + "/device/type");
+        if (!type.open(QFile::ReadOnly)) {
+            continue;
+        }
+
+        if (type.readAll().contains("SD")) {
+            names.append("/dev/" + device);
+        }
+        type.close();
+    }
+
     return names;
 }
