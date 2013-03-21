@@ -19,6 +19,8 @@ public:
 
 private:
     QFile dev;
+
+    QStringList getDeviceNamesFromSysfs();
 };
 
 #endif // DISKWRITER_UNIX_H

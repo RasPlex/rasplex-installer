@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QApplication>
 #include <QDir>
+#include <QProcess>
 
 DiskWriter_unix::DiskWriter_unix(QObject *parent) :
     DiskWriter(parent)
@@ -88,6 +89,27 @@ bool DiskWriter_unix::writeCompressedImageToRemovableDevice(const QString &filen
 
 QStringList DiskWriter_unix::getRemovableDeviceNames()
 {
+    QProcess lsblk;
+    lsblk.start("lsblk", QIODevice::ReadOnly);
+    if (!lsblk.waitForStarted() || !lsblk.waitForFinished()) {
+        return getDeviceNamesFromSysfs();
+    }
+
+    QStringList names;
+    QString device = lsblk.readLine();
+    while (!lsblk.atEnd()) {
+        device = device.trimmed(); // Odd trailing whitespace
+        if (device.endsWith("disk")) {
+            names << device.split(QRegExp("\\s+")).first();
+        }
+        device = lsblk.readLine();
+    }
+
+    return names;
+}
+
+QStringList DiskWriter_unix::getDeviceNamesFromSysfs()
+{
     QStringList names;
 
     QDir currentDir("/sys/block");
@@ -100,15 +122,9 @@ QStringList DiskWriter_unix::getRemovableDeviceNames()
             continue;
         }
 
-        QFile type("/sys/block/" + device + "/device/type");
-        if (!type.open(QFile::ReadOnly)) {
-            continue;
+        if (device.startsWith("mmcblk") || device.startsWith("sd")) {
+            names << device;
         }
-
-        if (type.readAll().contains("SD")) {
-            names.append("/dev/" + device);
-        }
-        type.close();
     }
 
     return names;
