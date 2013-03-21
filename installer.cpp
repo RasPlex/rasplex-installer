@@ -35,6 +35,7 @@ Installer::Installer(QWidget *parent) :
 #endif
 
     ui->removableDevicesComboBox->addItems(diskWriter->getRemovableDeviceNames());
+    ui->removableDevicesComboBox->setCurrentIndex(ui->removableDevicesComboBox->count()-1);
 
     connect(&manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(fileListReply(QNetworkReply*)));
     connect(ui->linksButton, SIGNAL(clicked()), this, SLOT(updateLinks()));
@@ -46,8 +47,7 @@ Installer::Installer(QWidget *parent) :
     xmlHandler *handler = new xmlHandler;
     xmlReader.setContentHandler(handler);
 
-    imageFileName = "foo.img.gz";
-    imageFile.setFileName(imageFileName);
+    setImageFileName("foo.img.gz");
 
     QFile file("foo.xml");
     if (file.open(QFile::ReadOnly)) {
@@ -221,6 +221,22 @@ unsigned int Installer::getUncompressedImageSize()
     return fileSize;
 }
 
+void Installer::setImageFileName(QString filename)
+{
+    if (imageFile.isOpen()) {
+        qDebug() << "Tried to change filename while imageFile was open!";
+        return;
+    }
+    imageFileName = filename;
+    imageFile.setFileName(imageFileName);
+
+    int idx = filename.lastIndexOf('/');
+    if (idx > 0) {
+        filename.remove(0, idx+1);
+    }
+    ui->fileNameLabel->setText(filename);
+}
+
 void Installer::updateLinks()
 {
     state = STATE_GETTING_LINKS;
@@ -239,9 +255,8 @@ void Installer::getDownloadLink()
     // Try to find file name in url
     int idx = link.lastIndexOf('/');
     if (idx > 0) {
-        imageFileName = link;
-        imageFileName.remove(0, idx+1);
-        imageFile.setFileName(imageFileName);
+        QString newFileName = link;
+        setImageFileName(newFileName.remove(0, idx+1));
     }
 
     QUrl url(link + "/download");
@@ -341,7 +356,7 @@ void Installer::getImageFileNameFromUser()
     if (filename.isNull()) {
         return;
     }
-    imageFileName = filename;
+    setImageFileName(filename);
     qDebug() << imageFileName;
 }
 

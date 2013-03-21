@@ -33,6 +33,7 @@ private:
     QByteArray rangeByteArray(qlonglong first, qlonglong last);
     QNetworkRequest createRequest(QUrl &url, qlonglong first, qlonglong last);
     unsigned int getUncompressedImageSize();
+    void setImageFileName(QString filename);
 
     enum {
         RESPONSE_OK = 200,
