@@ -9,6 +9,7 @@
 #include <QUrl>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QMessageBox>
 
 #if defined(Q_OS_WIN)
 #include "diskwriter_windows.h"
@@ -363,6 +364,16 @@ void Installer::getImageFileNameFromUser()
 void Installer::writeImageToDevice()
 {
     disableControls();
+
+    QMessageBox::StandardButton ok = QMessageBox::warning(this, tr("Confirm write"),
+                                                          "Are you sure?\n"
+                                                          "This might destroy your data!",
+                                                          QMessageBox::Yes | QMessageBox::No,
+                                                          QMessageBox::No);
+    if (ok != QMessageBox::Yes) {
+        reset();
+        return;
+    }
 
     ui->progressBar->setValue(0);
     ui->progressBar->setMaximum(getUncompressedImageSize());
