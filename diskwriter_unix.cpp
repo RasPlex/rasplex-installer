@@ -23,6 +23,15 @@ DiskWriter_unix::~DiskWriter_unix()
 int DiskWriter_unix::open(QString device)
 {
     dev.setFileName(device);
+
+#ifdef Q_OS_MAC
+    QProcess unmount;
+    unmount.start("diskutil unmountDisk "+device, QIODevice::ReadOnly);
+    unmount.waitForStarted();
+    unmount.waitForFinished();
+    qDebug() << unmount.readAll();
+#endif
+
     if (!dev.open(QFile::WriteOnly)) {
         return -1;
     }
@@ -114,14 +123,14 @@ QStringList DiskWriter_unix::getRemovableDeviceNames()
 #else
 
     QProcess lsblk;
-    lsblk.start("lsblk", QIODevice::ReadOnly);
+    lsblk.start("diskutil list", QIODevice::ReadOnly);
     lsblk.waitForStarted();
-
+    lsblk.waitForFinished();
 
     QString device = lsblk.readLine();
     while (!lsblk.atEnd()) {
         device = device.trimmed(); // Odd trailing whitespace
-        if (device.endsWith("disk")) {
+        if (device.startsWith("/dev/disk")) {
             names << device.split(QRegExp("\\s+")).first();
         }
         device = lsblk.readLine();

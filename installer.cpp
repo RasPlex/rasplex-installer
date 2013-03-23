@@ -49,6 +49,8 @@ Installer::Installer(QWidget *parent) :
     connect(ui->refreshDeiceListButton,SIGNAL(clicked()),this,SLOT(refreshDeviceList()));
     ui->hdmiOutputButton->setVisible(false);
     ui->sdtvOutputButton->setVisible(false);
+    ui->upgradeLabel->setVisible(false);
+    ui->upgradeLinks->setVisible(false);
 
     ui->hdmiOutputButton->setChecked(true);
     isCancelled = false;
@@ -469,7 +471,8 @@ void Installer::writeImageToDevice()
     }
 
     if (diskWriter->open(destination) < 0) {
-        qDebug() << "Failed to open image file";
+        qDebug() << "Failed to open output device";
+        ui->messageBar->setText("Unable to open "+destination+". Are you root?");
     }
 
     isWriting = true;
