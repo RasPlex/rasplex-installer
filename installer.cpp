@@ -35,20 +35,29 @@ Installer::Installer(QWidget *parent) :
     diskWriter = new DiskWriter_unix(this);
 #endif
 
-    ui->removableDevicesComboBox->addItems(diskWriter->getRemovableDeviceNames());
-    ui->removableDevicesComboBox->setCurrentIndex(ui->removableDevicesComboBox->count()-1);
+    refreshDeviceList();
 
     connect(&manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(fileListReply(QNetworkReply*)));
     connect(ui->linksButton, SIGNAL(clicked()), this, SLOT(updateLinks()));
     connect(ui->downloadButton, SIGNAL(clicked()), this, SLOT(getDownloadLink()));
+    connect(ui->cancelButton, SIGNAL(clicked()), this, SLOT(cancel()));
     connect(ui->loadButton, SIGNAL(clicked()), this, SLOT(getImageFileNameFromUser()));
     connect(ui->writeButton, SIGNAL(clicked()), this, SLOT(writeImageToDevice()));
     connect(diskWriter, SIGNAL(bytesWritten(int)), ui->progressBar, SLOT(setValue(int)));
+    connect(ui->hdmiOutputButton, SIGNAL(clicked()), this, SLOT(setHDMIOutput()));
+    connect(ui->sdtvOutputButton, SIGNAL(clicked()),this,SLOT(setSDTVOutput()));
+    connect(ui->refreshDeiceListButton,SIGNAL(clicked()),this,SLOT(refreshDeviceList()));
+    ui->hdmiOutputButton->setVisible(false);
+    ui->sdtvOutputButton->setVisible(false);
 
+    ui->hdmiOutputButton->setChecked(true);
+    isCancelled = false;
+    isWriting = false;
     xmlHandler *handler = new xmlHandler;
     xmlReader.setContentHandler(handler);
 
-    setImageFileName("foo.img.gz");
+    setImageFileName("");
+    ui->writeButton->setEnabled(false);
 
     QFile file("foo.xml");
     if (file.open(QFile::ReadOnly)) {
@@ -60,9 +69,39 @@ Installer::Installer(QWidget *parent) :
     }
 }
 
+
 Installer::~Installer()
 {
     delete ui;
+}
+
+void Installer::refreshDeviceList()
+{
+    qDebug() << "Refreshing device list";
+    ui->removableDevicesComboBox->clear();
+    ui->removableDevicesComboBox->addItems(diskWriter->getRemovableDeviceNames());
+    ui->removableDevicesComboBox->setCurrentIndex(ui->removableDevicesComboBox->count()-1);
+}
+
+void Installer::setHDMIOutput()
+{
+    ui->sdtvOutputButton->setChecked(false);
+}
+
+void Installer::setSDTVOutput()
+{
+    ui->hdmiOutputButton->setChecked(false);
+}
+
+void Installer::cancel()
+{
+
+    if (isWriting)
+        diskWriter->cancelWrite();
+
+    if (!isCancelled)
+        isCancelled = true;
+
 }
 
 void Installer::parseAndSetLinks(const QByteArray &data)
@@ -83,14 +122,20 @@ void Installer::parseAndSetLinks(const QByteArray &data)
     ui->releaseLinks->clear();
     ui->upgradeLinks->clear();
     // Add release links
+
+
     foreach (QString link, handler->releaseLinks) {
         QString version = link;
         // Remove full url and ".img.gz"
         int idx = link.lastIndexOf('-');
         version.remove(0, idx+1);
         version.chop(7);
-        ui->releaseLinks->addItem(version, link);
+
+
+        ui->releaseLinks->insertItem (0,version, link);
+        ui->releaseLinks->setCurrentIndex(0);
     }
+
 
     // Add upgrade links
     foreach (QString link, handler->upgradeLinks) {
@@ -165,8 +210,15 @@ void Installer::reset()
     }
     ui->linksButton->setEnabled(true);
     ui->downloadButton->setEnabled(true);
-    ui->writeButton->setEnabled(true);
+    ui->writeButton->setEnabled( !ui->fileNameLabel->text().isEmpty());
     ui->loadButton->setEnabled(true);
+    ui->hdmiOutputButton->setEnabled(true);
+    ui->sdtvOutputButton->setEnabled(true);
+    ui->cancelButton->setEnabled(true);
+    ui->refreshDeiceListButton->setEnabled(true);
+    ui->removableDevicesComboBox->setEnabled(true);
+    isCancelled = false;
+    ui->messageBar->setText("Please download and select an image to write.");
 }
 
 void Installer::disableControls()
@@ -175,6 +227,12 @@ void Installer::disableControls()
     ui->downloadButton->setEnabled(false);
     ui->writeButton->setEnabled(false);
     ui->loadButton->setEnabled(false);
+    ui->hdmiOutputButton->setEnabled(false);
+    ui->sdtvOutputButton->setEnabled(false);
+    ui->cancelButton->setEnabled(true);
+    ui->refreshDeiceListButton->setEnabled(false);
+    ui->removableDevicesComboBox->setEnabled(false);
+
 }
 
 QByteArray Installer::rangeByteArray(qlonglong first, qlonglong last)
@@ -272,6 +330,7 @@ void Installer::downloadImage(QNetworkReply *reply)
     qlonglong contentLength = reply->header(QNetworkRequest::ContentLengthHeader).toLongLong();
     QByteArray contentRange = reply->rawHeader("Content-Range");
 
+
     // Do some magic
     extractByteOffsetsFromContentLength(first, last, total, QString(contentRange));
 
@@ -281,18 +340,28 @@ void Installer::downloadImage(QNetworkReply *reply)
         reset();
         return;
     }
+
     imageFile.write(reply->readAll());
     bytesDownloaded = contentLength;
 
-    while (last <= total) {
+    while (last <= total && ! isCancelled) {
         manager.get(createRequest(downloadUrl, last+1, (last+CHUNKSIZE >= total ? total-1 : last+CHUNKSIZE)));
         last += CHUNKSIZE;
     }
+
+
 }
 
 void Installer::fileListReply(QNetworkReply *reply)
 {
     QByteArray replyData;
+    if (isCancelled)
+    {
+        isCancelled = false;
+        ui->progressBar->setValue(ui->progressBar->minimum());
+
+        reset();
+    }
     if(reply->error() == QNetworkReply::NoError)
     {
         QUrl redirectionUrl = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
@@ -311,6 +380,7 @@ void Installer::fileListReply(QNetworkReply *reply)
             reset();
             break;
         case STATE_GETTING_URL:
+            ui->messageBar->setText("Determining mirror URL...");
             if (redirectionUrl.isValid()) {
                 downloadUrl = redirectionUrl;
                 QNetworkRequest request = reply->request();
@@ -324,6 +394,7 @@ void Installer::fileListReply(QNetworkReply *reply)
             downloadImage(reply);
             break;
         case STATE_DOWNLOADING_IMAGE:
+            ui->messageBar->setText("Downloading image...");
             switch (responseCode) {
             case RESPONSE_FOUND:
             case RESPONSE_REDIRECT:
@@ -358,6 +429,7 @@ void Installer::getImageFileNameFromUser()
         return;
     }
     setImageFileName(filename);
+    ui->writeButton->setEnabled(true);
     qDebug() << imageFileName;
 }
 
@@ -370,6 +442,9 @@ void Installer::writeImageToDevice()
                                                           "This might destroy your data!",
                                                           QMessageBox::Yes | QMessageBox::No,
                                                           QMessageBox::No);
+
+
+
     if (ok != QMessageBox::Yes) {
         reset();
         return;
@@ -380,6 +455,9 @@ void Installer::writeImageToDevice()
 
     // TODO: make portable
     QString destination = ui->removableDevicesComboBox->currentText();
+
+    ui->messageBar->setText("Writing image to "+destination);
+
     if (destination.isNull()) {
         reset();
         return;
@@ -394,11 +472,13 @@ void Installer::writeImageToDevice()
         qDebug() << "Failed to open image file";
     }
 
+    isWriting = true;
     if (!diskWriter->writeCompressedImageToRemovableDevice(imageFileName)) {
         qDebug() << "Writing failed";
         reset();
         return;
     }
+    isWriting = false;
 
     reset();
     qDebug() << "Writing done!";

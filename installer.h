@@ -18,6 +18,7 @@ class Installer : public QDialog
 public:
     explicit Installer(QWidget *parent = 0);
     ~Installer();
+
     
 private:
     Ui::Installer *ui;
@@ -30,6 +31,7 @@ private:
     void extractByteOffsetsFromContentLength(qlonglong &first, qlonglong &last, qlonglong &total, QString s);
     void reset();
     void disableControls();
+
     QByteArray rangeByteArray(qlonglong first, qlonglong last);
     QNetworkRequest createRequest(QUrl &url, qlonglong first, qlonglong last);
     unsigned int getUncompressedImageSize();
@@ -55,10 +57,16 @@ private:
     QFile imageFile;
     QUrl downloadUrl;
     DiskWriter *diskWriter;
+    bool isCancelled;
+    bool isWriting;
 
 private slots:
+    void cancel();
+    void setHDMIOutput();
+    void setSDTVOutput();
     void updateLinks();
     void getDownloadLink();
+    void refreshDeviceList();
     void downloadImage(QNetworkReply *reply);
     void fileListReply(QNetworkReply *reply);
     void getImageFileNameFromUser();

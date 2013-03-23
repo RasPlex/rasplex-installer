@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>396</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -67,6 +67,13 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="refreshDeiceListButton">
+       <property name="text">
+        <string>Refresh Device List</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="linksButton">
        <property name="text">
         <string>&amp;Update links</string>
@@ -100,6 +107,9 @@
    </item>
    <item>
     <layout class="QFormLayout" name="formLayout">
+     <property name="fieldGrowthPolicy">
+      <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+     </property>
      <item row="0" column="0">
       <widget class="QPushButton" name="loadButton">
        <property name="text">
@@ -123,6 +133,20 @@
     </layout>
    </item>
    <item>
+    <widget class="QRadioButton" name="hdmiOutputButton">
+     <property name="text">
+      <string>Use HDMI Digital Output (default)</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QRadioButton" name="sdtvOutputButton">
+     <property name="text">
+      <string>Use SDTV Analog Output</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QPushButton" name="writeButton">
      <property name="text">
       <string>Write SD card</string>
@@ -143,9 +167,23 @@
     </spacer>
    </item>
    <item>
+    <widget class="QLabel" name="messageBar">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QProgressBar" name="progressBar">
      <property name="value">
       <number>0</number>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="cancelButton">
+     <property name="text">
+      <string>Cancel</string>
      </property>
     </widget>
    </item>

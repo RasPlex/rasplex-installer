@@ -18,9 +18,15 @@ public:
     virtual bool isOpen() = 0;
     virtual bool writeCompressedImageToRemovableDevice(const QString &filename) = 0;
     virtual QStringList getRemovableDeviceNames() = 0;
+    virtual void cancelWrite() = 0;
 
 signals:
     void bytesWritten(int);
+
+
+
+protected:
+    bool isCancelled;
 };
 
 #endif // DISKWRITER_H

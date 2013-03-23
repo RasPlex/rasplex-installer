@@ -9,6 +9,7 @@
 DiskWriter_windows::DiskWriter_windows(QObject *parent) :
     DiskWriter(parent)
 {
+    isCancelled = false;
 }
 
 DiskWriter_windows::~DiskWriter_windows()
@@ -67,6 +68,12 @@ bool DiskWriter_windows::isOpen()
     return (hRawDisk != INVALID_HANDLE_VALUE && hVolume != INVALID_HANDLE_VALUE);
 }
 
+void DiskWriter_windows::cancelWrite()
+{
+    isCancelled = true;
+}
+
+
 bool DiskWriter_windows::writeCompressedImageToRemovableDevice(const QString &filename)
 {
     int r;
@@ -94,7 +101,7 @@ bool DiskWriter_windows::writeCompressedImageToRemovableDevice(const QString &fi
 
     DWORD byteswritten;
     r = gzread(src, buf, sizeof(buf));
-    while (r > 0) {
+    while (r > 0 && ! isCancelled) {
         ok = WriteFile(hRawDisk, buf, r, &byteswritten, NULL);
         if (!ok) {
             wchar_t *errormessage=NULL;
@@ -112,6 +119,8 @@ bool DiskWriter_windows::writeCompressedImageToRemovableDevice(const QString &fi
         QApplication::processEvents();
         r = gzread(src, buf, sizeof(buf));
     }
+
+    isCancelled = false;
 
     if (r < 0) {
         qDebug() << "Error reading file!";

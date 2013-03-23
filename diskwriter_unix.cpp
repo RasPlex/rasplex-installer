@@ -1,4 +1,4 @@
-#include "diskwriter_unix.h"
+ #include "diskwriter_unix.h"
 
 #include "zlib.h"
 
@@ -10,6 +10,7 @@
 DiskWriter_unix::DiskWriter_unix(QObject *parent) :
     DiskWriter(parent)
 {
+    isCancelled = false;
 }
 
 DiskWriter_unix::~DiskWriter_unix()
@@ -38,6 +39,11 @@ bool DiskWriter_unix::isOpen()
     return dev.isOpen();
 }
 
+void DiskWriter_unix::cancelWrite()
+{
+    isCancelled = true;
+}
+
 bool DiskWriter_unix::writeCompressedImageToRemovableDevice(const QString &filename)
 {
     int r;
@@ -64,7 +70,7 @@ bool DiskWriter_unix::writeCompressedImageToRemovableDevice(const QString &filen
     }
 
     r = gzread(src, buf, sizeof(buf));
-    while (r > 0) {
+    while (r > 0 && ! isCancelled) {
         // TODO: Sanity check
         ok = dev.write(buf, r);
         if (!ok) {
@@ -76,6 +82,7 @@ bool DiskWriter_unix::writeCompressedImageToRemovableDevice(const QString &filen
         r = gzread(src, buf, sizeof(buf));
     }
 
+    isCancelled = false;
     if (r < 0) {
         gzclose_r(src);
         qDebug() << "Error reading file!";
@@ -89,13 +96,28 @@ bool DiskWriter_unix::writeCompressedImageToRemovableDevice(const QString &filen
 
 QStringList DiskWriter_unix::getRemovableDeviceNames()
 {
-    QProcess lsblk;
-    lsblk.start("lsblk", QIODevice::ReadOnly);
-    if (!lsblk.waitForStarted() || !lsblk.waitForFinished()) {
-        return getDeviceNamesFromSysfs();
-    }
 
     QStringList names;
+    QStringList unmounted;
+
+#ifdef Q_OS_LINUX
+    names = getDeviceNamesFromSysfs();
+
+    foreach (QString device, names)
+    {
+        if (! checkIsMounted(device))
+            unmounted << device;
+    }
+
+    return unmounted;
+
+#else
+
+    QProcess lsblk;
+    lsblk.start("lsblk", QIODevice::ReadOnly);
+    lsblk.waitForStarted();
+
+
     QString device = lsblk.readLine();
     while (!lsblk.atEnd()) {
         device = device.trimmed(); // Odd trailing whitespace
@@ -105,7 +127,32 @@ QStringList DiskWriter_unix::getRemovableDeviceNames()
         device = lsblk.readLine();
     }
 
+
+
     return names;
+
+#endif
+}
+
+
+bool DiskWriter_unix::checkIsMounted(QString device)
+{
+    bool mounted = false;
+    QProcess chkmount;
+    chkmount.start("mount",QIODevice::ReadOnly);
+    chkmount.waitForStarted();
+    chkmount.waitForFinished();
+
+    QString mount = chkmount.readLine();
+    while (!chkmount.atEnd() && ! mounted) {
+        mount = mount.trimmed(); // Odd trailing whitespace
+        mount = mount.split(QRegExp("\\s+")).first();
+        mounted = mount.indexOf(device) >= 0;
+        mount = chkmount.readLine();
+    }
+
+
+    return mounted;
 }
 
 QStringList DiskWriter_unix::getDeviceNamesFromSysfs()
