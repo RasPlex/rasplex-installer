@@ -1,0 +1,30 @@
+These are the steps I took to compile Qt statically. I'm sure there are other ways too.
+
+* Download and install QtSDK (MinGW version, I used 5.0.1)
+* Download Qt sources (I used Qt 5.0.1)
+* Install a version of perl (I used strawberry perl)
+* Install python
+* Unpack Qt sources, e.g. in C:\Qt
+* Edit C:\Qt\qt-everywhere-opensource-src-5.0.1\qtdeclarative\src\src.pro and change
+<<<<<<< 
+!isEmpty(QT.gui.name) {
+    SUBDIRS += \
+=======
+qtHaveModule(gui):contains(QT_CONFIG, opengl(es1|es2)?) {
+    SUBDIRS += \
+>>>>>>> Fixed build when Qt is configured with -no-opengl
+* Open "Qt 5.0.1 for Desktop (MinGW 4.7)". It's basically cmd.exe with some extra environment variables.
+* Run
+cd C:\path\to\qt
+configure -static -release -opensource -nomake tools -nomake examples -no-accessibility -no-openvg -no-nis -no-iconv -no-inotify -no-fontconfig -qt-zlib -no-icu -no-gif -no-libjpeg -no-freetype -no-vcproj -strip -no-plugin-manifests -no-openssl no-dbus -no-audio-backend -no-qml-debug -no-directwrite -no-native-gestures -no-mp -no-rtti -no-c++11 -no-opengl -system-zlib
+mingw32-make
+* wait for a shitlong while.
+* Open rasplex-installer project in Qt Creator
+* Go to Tools->Options->Build & Run->Qt Versions and click add. Select
+C:\Qt\qt-everywhere-opensource-src-5.0.1\qtbase\bin\qmake.exe
+* Go to Tools->Options->Build & Run->Kits and clone the existing kit. Change Qt version of that kit to the static version.
+* Apply and close Options
+* Make rasplex-installer the active project and go to the Projects tab
+* Click "Add kit" and select the new (static) clone
+* Make sure that the build configuration is set to Release
+* Build and prosper!
