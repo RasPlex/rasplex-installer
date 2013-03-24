@@ -35,3 +35,8 @@ unix {
 FORMS    += installer.ui
 
 LIBS += -L3rd-party -lz
+
+OTHER_FILES +=
+
+RESOURCES += \
+    resources.qrc
