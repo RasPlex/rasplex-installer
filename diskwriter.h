@@ -23,8 +23,6 @@ public:
 signals:
     void bytesWritten(int);
 
-
-
 protected:
     bool isCancelled;
 };

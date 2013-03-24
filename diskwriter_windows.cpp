@@ -119,7 +119,6 @@ bool DiskWriter_windows::writeCompressedImageToRemovableDevice(const QString &fi
         QApplication::processEvents();
         r = gzread(src, buf, sizeof(buf));
     }
-
     isCancelled = false;
 
     if (r < 0) {

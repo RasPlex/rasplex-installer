@@ -67,7 +67,6 @@ Installer::Installer(QWidget *parent) :
     }
 }
 
-
 Installer::~Installer()
 {
     delete ui;
@@ -111,7 +110,6 @@ void Installer::parseAndSetLinks(const QByteArray &data)
     ui->upgradeLinks->clear();
     // Add release links
 
-
     foreach (QString link, handler->releaseLinks) {
         QString version = link;
         // Remove full url and ".img.gz"
@@ -123,7 +121,6 @@ void Installer::parseAndSetLinks(const QByteArray &data)
         ui->releaseLinks->insertItem (0,version, link);
         ui->releaseLinks->setCurrentIndex(0);
     }
-
 
     // Add upgrade links
     foreach (QString link, handler->upgradeLinks) {
@@ -318,8 +315,7 @@ void Installer::downloadImage(QNetworkReply *reply)
     qlonglong contentLength = reply->header(QNetworkRequest::ContentLengthHeader).toLongLong();
     QByteArray contentRange = reply->rawHeader("Content-Range");
 
-
-    // Do some magic
+    // Do some magic. \todo Make it not report error on uncompressed iages
     extractByteOffsetsFromContentLength(first, last, total, QString(contentRange));
 
     // This is the first valid packet, save it!
@@ -336,20 +332,17 @@ void Installer::downloadImage(QNetworkReply *reply)
         manager.get(createRequest(downloadUrl, last+1, (last+CHUNKSIZE >= total ? total-1 : last+CHUNKSIZE)));
         last += CHUNKSIZE;
     }
-
-
 }
 
 void Installer::fileListReply(QNetworkReply *reply)
 {
     QByteArray replyData;
-    if (isCancelled)
-    {
+    if (isCancelled) {
         isCancelled = false;
         ui->progressBar->setValue(ui->progressBar->minimum());
-
         reset();
     }
+
     if(reply->error() == QNetworkReply::NoError)
     {
         QUrl redirectionUrl = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
@@ -430,8 +423,6 @@ void Installer::writeImageToDevice()
                                                           "This might destroy your data!",
                                                           QMessageBox::Yes | QMessageBox::No,
                                                           QMessageBox::No);
-
-
 
     if (ok != QMessageBox::Yes) {
         reset();

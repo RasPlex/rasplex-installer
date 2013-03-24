@@ -1,4 +1,4 @@
- #include "diskwriter_unix.h"
+#include "diskwriter_unix.h"
 
 #include "zlib.h"
 
@@ -119,9 +119,7 @@ QStringList DiskWriter_unix::getRemovableDeviceNames()
     }
 
     return unmounted;
-
 #else
-
     QProcess lsblk;
     lsblk.start("diskutil list", QIODevice::ReadOnly);
     lsblk.waitForStarted();
@@ -136,10 +134,7 @@ QStringList DiskWriter_unix::getRemovableDeviceNames()
         device = lsblk.readLine();
     }
 
-
-
     return names;
-
 #endif
 }
 
@@ -159,7 +154,6 @@ bool DiskWriter_unix::checkIsMounted(QString device)
         mounted = mount.indexOf(device) >= 0;
         mount = chkmount.readLine();
     }
-
 
     return mounted;
 }

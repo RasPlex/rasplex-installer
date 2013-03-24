@@ -18,7 +18,6 @@ class Installer : public QDialog
 public:
     explicit Installer(QWidget *parent = 0);
     ~Installer();
-
     
 private:
     Ui::Installer *ui;
