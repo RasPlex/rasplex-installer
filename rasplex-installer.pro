@@ -15,6 +15,15 @@ SOURCES += main.cpp\
     installer.cpp \
     xmlhandler.cpp
 
+static { # everything below takes effect with CONFIG += static
+    CONFIG += static
+    CONFIG += staticlib # this is needed if you create a static library, not a static executable
+    DEFINES += STATIC
+    message("~~~ static build ~~~") # this is for information, that the static build is done
+}
+
+QMAKE_LFLAGS  = -static -static-libgcc
+
 HEADERS  += installer.h \
     xmlhandler.h \
     diskwriter.h \
@@ -24,6 +33,7 @@ HEADERS  += installer.h \
 win32 {
     SOURCES += diskwriter_windows.cpp
     HEADERS += diskwriter_windows.h
+    CONFIG += rtti
 
     RC_FILE = rasplex-installer.rc
 }
