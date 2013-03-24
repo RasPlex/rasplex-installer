@@ -1,7 +1,7 @@
 These are the steps I took to compile Qt statically. I'm sure there are other ways too.
 
-* Download and install QtSDK (MinGW version, I used 5.0.1)
-* Download Qt sources (I used Qt 5.0.1)
+* Download and install QtSDK (MinGW version, I used 5.0.1) 
+* Download Qt sources (I used Qt 5.0.1) - i used the one bundled with qt creator
 * Install a version of perl (I used strawberry perl)
 * Install python
 * Unpack Qt sources, e.g. in C:\Qt
@@ -13,12 +13,50 @@ These are the steps I took to compile Qt statically. I'm sure there are other wa
 qtHaveModule(gui):contains(QT_CONFIG, opengl(es1|es2)?) {
     SUBDIRS += \
 >>>>>>> Fixed build when Qt is configured with -no-opengl
+
+Now we have to patch some makefiles:  http://falsinsoft.blogspot.ca/2011/12/building-static-qt-on-windows-with.html
+
+http://qt-project.org/wiki/How_to_build_a_static_Qt_version_for_Windows_with_gcc
+
+	OK, now we need to make few changes in  some files inside sources folder. Using Notepad.exe open the following file:
+
+	C:\Qt\qt-everywhere-opensource-src-x.x.x\mkspecs\win32-g++\qmake.conf
+
+	Search for the following line:
+
+	QMAKE_LFLAGS  =
+
+	and change to (add -static -static-libgcc):
+
+	QMAKE_LFLAGS  = -static -static-libgcc
+
+	Save and close. Now open and modify the following three files:
+
+	C:\Qt\qt-everywhere-opensource-src-x.x.x\qmake\Makefile.win32   
+	C:\Qt\qt-everywhere-opensource-src-x.x.x\qmake\Makefile.win32-g++ 
+	C:\Qt\qt-everywhere-opensource-src-x.x.x\qmake\Makefile.win32-g++-sh
+
+	Same operation of above. Search for the following line:
+
+	LFLAGS  = [other-params...]
+
+	and add the param -static-libgcc if is not already present (is possible that in the last two files of the list this param is already present). So the line will become:
+
+	LFLAGS  = -static-libgcc [other-params...]
+
+
+
+
 * Open "Qt 5.0.1 for Desktop (MinGW 4.7)". It's basically cmd.exe with some extra environment variables.
 * Run
 cd C:\path\to\qt
-configure -static -release -opensource -nomake tools -nomake examples -no-accessibility -no-openvg -no-nis -no-iconv -no-inotify -no-fontconfig -qt-zlib -no-icu -no-gif -no-libjpeg -no-freetype -no-vcproj -strip -no-plugin-manifests -no-openssl no-dbus -no-audio-backend -no-qml-debug -no-directwrite -no-native-gestures -no-mp -no-rtti -no-c++11 -no-opengl -system-zlib
+configure -static -release -opensource -nomake tools -nomake examples -no-accessibility -no-openvg -no-nis -no-iconv -no-inotify -no-fontconfig -qt-zlib -no-icu -no-gif -no-libjpeg -no-freetype -no-vcproj -strip -no-plugin-manifests -no-openssl -no-dbus -no-audio-backend -no-qml-debug -no-directwrite -no-native-gestures -no-mp -no-rtti -no-c++11 -no-opengl -system-zlib
 mingw32-make
 * wait for a shitlong while.
+
+Using Qt creator:
+
+
 * Open rasplex-installer project in Qt Creator
 * Go to Tools->Options->Build & Run->Qt Versions and click add. Select
 C:\Qt\qt-everywhere-opensource-src-5.0.1\qtbase\bin\qmake.exe
@@ -28,3 +66,13 @@ C:\Qt\qt-everywhere-opensource-src-5.0.1\qtbase\bin\qmake.exe
 * Click "Add kit" and select the new (static) clone
 * Make sure that the build configuration is set to Release
 * Build and prosper!
+
+
+Or Using command line:
+
+Make sure you are using the same qt mingw command line from before.
+
+navigate to rasplex-installer directory, and run the qmake that you just built above by manually specifying its path (or make it part of build environment)
+
+then just run mingw32-make
+
