@@ -472,7 +472,9 @@ void Installer::writeImageToDevice()
 
     if (diskWriter->open(destination) < 0) {
         qDebug() << "Failed to open output device";
+        reset();
         ui->messageBar->setText("Unable to open "+destination+". Are you root?");
+        return;
     }
 
     isWriting = true;
