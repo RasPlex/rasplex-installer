@@ -54,7 +54,6 @@ Installer::Installer(QWidget *parent) :
 
     ui->hdmiOutputButton->setChecked(true);
     isCancelled = false;
-    isWriting = false;
     xmlHandler *handler = new xmlHandler;
     xmlReader.setContentHandler(handler);
 
@@ -98,7 +97,7 @@ void Installer::setSDTVOutput()
 void Installer::cancel()
 {
 
-    if (isWriting)
+    if (state == STATE_WRITING_IMAGE)
         diskWriter->cancelWrite();
 
     if (!isCancelled)
@@ -477,13 +476,11 @@ void Installer::writeImageToDevice()
         return;
     }
 
-    isWriting = true;
     if (!diskWriter->writeCompressedImageToRemovableDevice(imageFileName)) {
         qDebug() << "Writing failed";
         reset();
         return;
     }
-    isWriting = false;
 
     reset();
     qDebug() << "Writing done!";

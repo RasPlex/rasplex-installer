@@ -49,7 +49,8 @@ private:
         STATE_IDLE,
         STATE_GETTING_LINKS,
         STATE_GETTING_URL,
-        STATE_DOWNLOADING_IMAGE
+        STATE_DOWNLOADING_IMAGE,
+        STATE_WRITING_IMAGE
     } state;
 
     qlonglong bytesDownloaded;
@@ -58,7 +59,6 @@ private:
     QUrl downloadUrl;
     DiskWriter *diskWriter;
     bool isCancelled;
-    bool isWriting;
 
 private slots:
     void cancel();
