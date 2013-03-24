@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>396</height>
+    <width>344</width>
+    <height>418</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -137,17 +137,26 @@
     </layout>
    </item>
    <item>
-    <widget class="QRadioButton" name="hdmiOutputButton">
-     <property name="text">
-      <string>Use HDMI Digital Output (default)</string>
+    <widget class="QGroupBox" name="videoGroupBox">
+     <property name="title">
+      <string>Video output</string>
      </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QRadioButton" name="sdtvOutputButton">
-     <property name="text">
-      <string>Use SDTV Analog Output</string>
-     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QRadioButton" name="hdmiOutputButton">
+        <property name="text">
+         <string>Use HDMI Digital Output (default)</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="sdtvOutputButton">
+        <property name="text">
+         <string>Use SDTV Analog Output</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>

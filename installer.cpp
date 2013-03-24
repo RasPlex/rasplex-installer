@@ -44,11 +44,8 @@ Installer::Installer(QWidget *parent) :
     connect(ui->loadButton, SIGNAL(clicked()), this, SLOT(getImageFileNameFromUser()));
     connect(ui->writeButton, SIGNAL(clicked()), this, SLOT(writeImageToDevice()));
     connect(diskWriter, SIGNAL(bytesWritten(int)), ui->progressBar, SLOT(setValue(int)));
-    connect(ui->hdmiOutputButton, SIGNAL(clicked()), this, SLOT(setHDMIOutput()));
-    connect(ui->sdtvOutputButton, SIGNAL(clicked()),this,SLOT(setSDTVOutput()));
     connect(ui->refreshDeiceListButton,SIGNAL(clicked()),this,SLOT(refreshDeviceList()));
-    ui->hdmiOutputButton->setVisible(false);
-    ui->sdtvOutputButton->setVisible(false);
+    ui->videoGroupBox->setVisible(false);
     ui->upgradeLabel->setVisible(false);
     ui->upgradeLinks->setVisible(false);
 
@@ -82,16 +79,6 @@ void Installer::refreshDeviceList()
     ui->removableDevicesComboBox->clear();
     ui->removableDevicesComboBox->addItems(diskWriter->getRemovableDeviceNames());
     ui->removableDevicesComboBox->setCurrentIndex(ui->removableDevicesComboBox->count()-1);
-}
-
-void Installer::setHDMIOutput()
-{
-    ui->sdtvOutputButton->setChecked(false);
-}
-
-void Installer::setSDTVOutput()
-{
-    ui->hdmiOutputButton->setChecked(false);
 }
 
 void Installer::cancel()

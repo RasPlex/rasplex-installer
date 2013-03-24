@@ -62,8 +62,6 @@ private:
 
 private slots:
     void cancel();
-    void setHDMIOutput();
-    void setSDTVOutput();
     void updateLinks();
     void getDownloadLink();
     void refreshDeviceList();
