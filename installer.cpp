@@ -75,8 +75,9 @@ Installer::~Installer()
 void Installer::refreshDeviceList()
 {
     qDebug() << "Refreshing device list";
+    this->devices = diskWriter->getRemovableDeviceNames();
     ui->removableDevicesComboBox->clear();
-    ui->removableDevicesComboBox->addItems(diskWriter->getRemovableDeviceNames());
+    ui->removableDevicesComboBox->addItems(devices);
     ui->removableDevicesComboBox->setCurrentIndex(ui->removableDevicesComboBox->count()-1);
 }
 
@@ -433,7 +434,8 @@ void Installer::writeImageToDevice()
     ui->progressBar->setMaximum(getUncompressedImageSize());
 
     // TODO: make portable
-    QString destination = ui->removableDevicesComboBox->currentText();
+    QString destination = this->devices.at(ui->removableDevicesComboBox->currentIndex());
+
 
     ui->messageBar->setText("Writing image to "+destination);
 

@@ -56,6 +56,7 @@ private:
     QString imageFileName;
     QFile imageFile;
     QUrl downloadUrl;
+    QStringList devices;
     DiskWriter *diskWriter;
     bool isCancelled;
 
