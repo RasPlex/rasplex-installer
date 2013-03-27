@@ -17,12 +17,14 @@ public:
     bool writeCompressedImageToRemovableDevice(const QString &filename);
     QStringList getRemovableDeviceNames();
     void cancelWrite();
+    QStringList getUserFriendlyNamesRemovableDevices(QStringList devices);
 
 private:
     QFile dev;
 
     bool checkIsMounted(QString device);
     QStringList getDeviceNamesFromSysfs();
+    bool checkIfUSB(QString device);
 };
 
 #endif // DISKWRITER_UNIX_H

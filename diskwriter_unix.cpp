@@ -38,6 +38,34 @@ int DiskWriter_unix::open(QString device)
     return 0;
 }
 
+QStringList DiskWriter_unix::getUserFriendlyNamesRemovableDevices(QStringList devices) {
+    QStringList returnList;
+
+    for (QString s : devices) {
+#ifdef Q_OS_LINUX
+        // TODO
+        returnList.append(s);
+#else
+        QProcess lsblk;
+        lsblk.start(QString("diskutil info %1s1").arg(s), QIODevice::ReadOnly);
+        lsblk.waitForStarted();
+        lsblk.waitForFinished();
+
+        QString output = lsblk.readLine();
+        while (!lsblk.atEnd()) {
+            output = output.trimmed(); // Odd trailing whitespace
+            if (output.contains("Volume Name:")) { // We want the volume name of this device
+                output.replace("Volume Name:              ","");
+                returnList.append(output);
+            }
+            output = lsblk.readLine();
+        }
+#endif
+    }
+
+    return returnList;
+}
+
 void DiskWriter_unix::close()
 {
     dev.close();
@@ -128,13 +156,40 @@ QStringList DiskWriter_unix::getRemovableDeviceNames()
     QString device = lsblk.readLine();
     while (!lsblk.atEnd()) {
         device = device.trimmed(); // Odd trailing whitespace
+
         if (device.startsWith("/dev/disk")) {
-            names << device.split(QRegExp("\\s+")).first();
+            // We only want to add USB devics
+            QString name = device.split(QRegExp("\\s+")).first();
+            if (this->checkIfUSB(name)) {
+                names.append(name);
+            }
         }
         device = lsblk.readLine();
     }
 
     return names;
+#endif
+}
+
+bool DiskWriter_unix::checkIfUSB(QString device) {
+#ifdef Q_OS_LINUX
+    //TODO
+    return true;
+#else
+    QProcess lssize;
+    lssize.start(QString("diskutil info %1").arg(device), QIODevice::ReadOnly);
+    lssize.waitForStarted();
+    lssize.waitForFinished();
+
+    QString s = lssize.readLine();
+    while (!lssize.atEnd()) {
+         if (s.contains("Protocol:") && s.contains("USB")) {
+             return true;
+         }
+         s = lssize.readLine();
+    }
+
+    return false;
 #endif
 }
 
