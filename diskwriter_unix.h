@@ -24,6 +24,7 @@ private:
 
     bool checkIsMounted(QString device);
     QStringList getDeviceNamesFromSysfs();
+    bool checkIfUSB(QString device);
 };
 
 #endif // DISKWRITER_UNIX_H
