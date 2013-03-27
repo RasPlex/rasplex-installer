@@ -18,6 +18,7 @@ public:
     bool writeCompressedImageToRemovableDevice(const QString &filename);
     QStringList getRemovableDeviceNames();
     void cancelWrite();
+    QStringList getUserFriendlyNamesRemovableDevices(QStringList devices);
 
 private:
     QFile dev;

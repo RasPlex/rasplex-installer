@@ -77,6 +77,7 @@ void Installer::refreshDeviceList()
     qDebug() << "Refreshing device list";
     ui->removableDevicesComboBox->clear();
     ui->removableDevicesComboBox->addItems(diskWriter->getRemovableDeviceNames());
+    // ui->removableDevicesComboBox->addItems(diskWriter->getUserFriendlyNamesRemovableDevices(devices));
     ui->removableDevicesComboBox->setCurrentIndex(ui->removableDevicesComboBox->count()-1);
 }
 

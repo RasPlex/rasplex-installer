@@ -38,6 +38,34 @@ int DiskWriter_unix::open(QString device)
     return 0;
 }
 
+QStringList DiskWriter_unix::getUserFriendlyNamesRemovableDevices(QStringList devices) {
+    QStringList returnList;
+
+    foreach (QString s, devices) {
+#ifdef Q_OS_LINUX
+        // TODO
+        returnList.append(s);
+#else
+        QProcess lsblk;
+        lsblk.start(QString("diskutil info %1s1").arg(s), QIODevice::ReadOnly);
+        lsblk.waitForStarted();
+        lsblk.waitForFinished();
+
+        QString output = lsblk.readLine();
+        while (!lsblk.atEnd()) {
+            output = output.trimmed(); // Odd trailing whitespace
+            if (output.contains("Volume Name:")) { // We want the volume name of this device
+                output.replace("Volume Name:              ","");
+                returnList.append(output);
+            }
+            output = lsblk.readLine();
+        }
+#endif
+    }
+
+    return returnList;
+}
+
 void DiskWriter_unix::close()
 {
     dev.close();

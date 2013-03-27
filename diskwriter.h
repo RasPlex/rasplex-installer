@@ -19,6 +19,7 @@ public:
     virtual bool writeCompressedImageToRemovableDevice(const QString &filename) = 0;
     virtual QStringList getRemovableDeviceNames() = 0;
     virtual void cancelWrite() = 0;
+    virtual QStringList getUserFriendlyNamesRemovableDevices(QStringList devices) = 0;
 
 signals:
     void bytesWritten(int);
