@@ -131,6 +131,7 @@ bool DiskWriter_unix::writeCompressedImageToRemovableDevice(const QString &filen
     return true;
 }
 
+#define USE_ONLY_USB_DEVICES_ON_OSX 1
 QStringList DiskWriter_unix::getRemovableDeviceNames()
 {
 
@@ -156,13 +157,44 @@ QStringList DiskWriter_unix::getRemovableDeviceNames()
     QString device = lsblk.readLine();
     while (!lsblk.atEnd()) {
         device = device.trimmed(); // Odd trailing whitespace
+
         if (device.startsWith("/dev/disk")) {
-            names << device.split(QRegExp("\\s+")).first();
+            QString name = device.split(QRegExp("\\s+")).first();
+#if USE_ONLY_USB_DEVICES_ON_OSX == 0
+	    names << name;
+#else
+            // We only want to add USB devics
+            if (this->checkIfUSB(name)) {
+                names << name;
+            }
+#endif
         }
         device = lsblk.readLine();
     }
 
     return names;
+#endif
+}
+
+bool DiskWriter_unix::checkIfUSB(QString device) {
+#ifdef Q_OS_LINUX
+    //TODO
+    return true;
+#else
+    QProcess lssize;
+    lssize.start(QString("diskutil info %1").arg(device), QIODevice::ReadOnly);
+    lssize.waitForStarted();
+    lssize.waitForFinished();
+
+    QString s = lssize.readLine();
+    while (!lssize.atEnd()) {
+         if (s.contains("Protocol:") && s.contains("USB")) {
+             return true;
+         }
+         s = lssize.readLine();
+    }
+
+    return false;
 #endif
 }
 
