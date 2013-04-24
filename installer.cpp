@@ -24,7 +24,8 @@ Installer::Installer(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Installer),
     state(STATE_IDLE),
-    bytesDownloaded(0)
+    bytesDownloaded(0),
+    imageHash(QCryptographicHash::Md5)
 {
     ui->setupUi(this);
     manager.setParent(this);
@@ -144,6 +145,7 @@ void Installer::parseAndSetLinks(const QByteArray &data)
 
 void Installer::saveAndUpdateProgress(QNetworkReply *reply)
 {
+    QByteArray data;
     qlonglong first, last, total;
     qlonglong contentLength = reply->header(QNetworkRequest::ContentLengthHeader).toLongLong();
     QByteArray contentRange = reply->rawHeader("Content-Range");
@@ -158,8 +160,10 @@ void Installer::saveAndUpdateProgress(QNetworkReply *reply)
     extractByteOffsetsFromContentLength(first, last, total, QString(contentRange));
 
     // Save data
+    data = reply->readAll();
     imageFile.seek(first);
-    imageFile.write(reply->readAll());
+    imageFile.write(data);
+    imageHash.addData(data);
     bytesDownloaded += contentLength;
 
     // Update progress bar
@@ -168,7 +172,13 @@ void Installer::saveAndUpdateProgress(QNetworkReply *reply)
     qDebug() << bytesDownloaded << "/" << total << "=" << (qreal)bytesDownloaded/total * 100 << "%";
 
     if (bytesDownloaded == total) {
-        // Done!
+        imageFile.close();
+        // Done! Let's check checksum!
+        if (!isChecksumValid()) {
+            reset();
+            ui->messageBar->setText("Wrong md5 sum! Please re-download.");
+            return;
+        }
         reset();
     }
 }
@@ -200,6 +210,7 @@ void Installer::reset()
     if (imageFile.isOpen()) {
         imageFile.close();
     }
+    ui->releaseLinks->setEnabled(true);
     ui->linksButton->setEnabled(true);
     ui->downloadButton->setEnabled(true);
     ui->writeButton->setEnabled( !ui->fileNameLabel->text().isEmpty());
@@ -215,6 +226,7 @@ void Installer::reset()
 
 void Installer::disableControls()
 {
+    ui->releaseLinks->setEnabled(false);
     ui->linksButton->setEnabled(false);
     ui->downloadButton->setEnabled(false);
     ui->writeButton->setEnabled(false);
@@ -225,6 +237,41 @@ void Installer::disableControls()
     ui->refreshDeiceListButton->setEnabled(false);
     ui->removableDevicesComboBox->setEnabled(false);
 
+}
+
+bool Installer::isChecksumValid()
+{
+    QByteArray referenceSum, downloadSum;
+    QCryptographicHash c(QCryptographicHash::Md5);
+
+    // Calculate the md5 sum of the downloaded file
+    // TODO: Calculate sum as we download (make it work)
+    imageFile.open(QFile::ReadOnly);
+    while (!imageFile.atEnd()) {
+        c.addData(imageFile.read(4096));
+    }
+    downloadSum = c.result().toHex();
+    imageFile.close();
+
+    xmlHandler *handler = dynamic_cast<xmlHandler*>(xmlReader.contentHandler());
+    if (handler == NULL) {
+        return false;
+    }
+
+    // Find our reference sum
+    QUrl selectedUrl = ui->releaseLinks->itemData(ui->releaseLinks->currentIndex()).toUrl();
+    foreach (xmlHandler::DownloadInfo info, handler->releases) {
+        if (info.url == selectedUrl) {
+            referenceSum = info.md5sum;
+            break;
+        }
+    }
+
+    if (referenceSum.isEmpty() || downloadSum != referenceSum) {
+        return false;
+    }
+
+    return true;
 }
 
 QByteArray Installer::rangeByteArray(qlonglong first, qlonglong last)
@@ -326,7 +373,6 @@ void Installer::downloadImage(QNetworkReply *reply)
     // Do some magic. \todo Make it not report error on uncompressed iages
     extractByteOffsetsFromContentLength(first, last, total, QString(contentRange));
 
-    // This is the first valid packet, save it!
     qDebug() << "Final url:" << downloadUrl << total;
 
     // Bleeding and current are special
@@ -339,12 +385,16 @@ void Installer::downloadImage(QNetworkReply *reply)
         return;
     }
 
+    // This is the first valid packet, save it!
     if (!imageFile.isOpen() && !imageFile.open(QFile::ReadWrite)) {
         reset();
         return;
     }
 
-    imageFile.write(reply->readAll());
+    QByteArray data = reply->readAll();
+    imageHash.reset();
+    imageHash.addData(data);
+    imageFile.write(data);
     bytesDownloaded = contentLength;
 
     while (last <= total && ! isCancelled) {

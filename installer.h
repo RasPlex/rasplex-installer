@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QtXml>
 #include <QNetworkAccessManager>
+#include <QCryptographicHash>
 
 class DiskWriter;
 
@@ -30,6 +31,7 @@ private:
     void extractByteOffsetsFromContentLength(qlonglong &first, qlonglong &last, qlonglong &total, QString s);
     void reset();
     void disableControls();
+    bool isChecksumValid();
 
     QByteArray rangeByteArray(qlonglong first, qlonglong last);
     QNetworkRequest createRequest(QUrl &url, qlonglong first, qlonglong last);
@@ -54,6 +56,7 @@ private:
 
     qlonglong bytesDownloaded;
     QString imageFileName;
+    QCryptographicHash imageHash;
     QFile imageFile;
     QUrl downloadUrl;
     DiskWriter *diskWriter;
