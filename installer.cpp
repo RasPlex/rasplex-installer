@@ -109,31 +109,33 @@ void Installer::parseAndSetLinks(const QByteArray &data)
 
     ui->releaseLinks->clear();
     ui->upgradeLinks->clear();
+
     // Add release links
+    foreach (xmlHandler::DownloadInfo info, handler->releases) {
+        QUrl link = info.url;
+        QString version = link.toString();
 
-    foreach (QString link, handler->releaseLinks) {
-        QString version = link;
         // Remove full url and ".img.gz"
-        int idx = link.lastIndexOf('-');
+        int idx = version.lastIndexOf('-');
         version.remove(0, idx+1);
-        version.chop(7);
+        version.chop(16);
 
-
-        ui->releaseLinks->insertItem (0,version, link);
+        ui->releaseLinks->insertItem (0, version, link);
     }
 
     // Add current and bleeding
-    ui->releaseLinks->insertItem(0, "bleeding", handler->bleeding);
-    ui->releaseLinks->insertItem(0, "current", handler->current);
+    ui->releaseLinks->insertItem(0, "bleeding", handler->bleeding.url);
+    ui->releaseLinks->insertItem(0, "current", handler->current.url);
     ui->releaseLinks->setCurrentIndex(0);
 
     // Add upgrade links
-    foreach (QString link, handler->upgradeLinks) {
-        QString version = link;
+    foreach (xmlHandler::DownloadInfo info, handler->autoupdates) {
+        QUrl link = info.url;
+        QString version = link.toString();
         // Remove full url and ".tar.bz2"
-        int idx = link.lastIndexOf('-');
+        int idx = version.lastIndexOf('-');
         version.remove(0, idx+1);
-        version.chop(8);
+        version.chop(17);
         ui->upgradeLinks->addItem(version, link);
     }
 
@@ -300,17 +302,16 @@ void Installer::getDownloadLink()
     state = STATE_GETTING_URL;
     disableControls();
 
-    QString link = ui->releaseLinks->itemData(ui->releaseLinks->currentIndex()).toString();
+    QUrl url = ui->releaseLinks->itemData(ui->releaseLinks->currentIndex()).toUrl();
+    QString link = url.toString();
     if (!link.contains("bleeding") && !link.contains("current")) {
         // Try to find file name in url
-        int idx = link.lastIndexOf('/');
-        if (idx > 0) {
-            QString newFileName = link;
-            setImageFileName(newFileName.remove(0, idx+1));
+        QString newFileName = link.section('/',-2,-2);
+        if (!newFileName.isEmpty()) {
+            setImageFileName(newFileName);
         }
     }
 
-    QUrl url(link + "/download");
     manager.get(createRequest(url, 0, CHUNKSIZE));
 }
 
@@ -330,9 +331,8 @@ void Installer::downloadImage(QNetworkReply *reply)
 
     // Bleeding and current are special
     if (downloadUrl.toString().contains("bleeding") || downloadUrl.toString().contains("current")) {
-        QString link = reply->readAll();
-        link.chop(strlen("/download\n"));
-        int idx = ui->releaseLinks->findData(link);
+        QString url = QString(reply->readAll()).trimmed();
+        int idx = ui->releaseLinks->findData(url);
         ui->releaseLinks->setCurrentIndex(idx);
         reset();
         ui->downloadButton->click();

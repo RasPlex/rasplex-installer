@@ -1,32 +1,70 @@
 #include "xmlhandler.h"
+#include <QDebug>
 
-bool xmlHandler::startElement(const QString&, const QString &localName, const QString &, const QXmlAttributes &atts)
+bool xmlHandler::startElement(const QString &, const QString &, const QString &qName, const QXmlAttributes &atts)
 {
-    if (localName == "link") {
-        QString link;
-        for (int i = 0; i < atts.count(); i++) {
-            if (atts.localName(i) == "href") {
-                link = atts.value(i);
-                int n = link.lastIndexOf("download");
-                if (n < 0) {
-                    return true;
-                }
+    if (qName == "media:content") {
+        if (atts.value("type") == "application/x-gzip; charset=binary") {
+            QString url = atts.value("url");
 
-                link = link.remove(n-1, link.size());
+            // Filter out rasplexdev builds
+            if (!url.contains("release")) {
+                return true;
+            }
+
+            // Work around bug in sourceforge data
+            url.replace("/project/", "/projects/");
+
+            info.url = url;
+            info.filesize = atts.value("filesize").toUInt();
+        }
+        if (atts.value("type") == "text/plain; charset=us-ascii") {
+            QString url = atts.value("url");
+
+            // Work around bug in sourceforge data
+            url.replace("/project/", "/projects/");
+
+            if (url.contains("bleeding")) {
+                bleeding.url = url;
+                bleeding.filesize = atts.value("filesize").toUInt();
+            }
+            if (url.contains("current")) {
+                current.url = url;
+                current.filesize = atts.value("filesize").toUInt();
             }
         }
-        if (link.contains("release") && link.endsWith("img.gz")) {
-            releaseLinks += link;
-        }
-        if (link.contains("bleeding")) {
-            bleeding = link;
-        }
-        if (link.contains("current")) {
-            current = link;
-        }
-        if (link.contains("autoupdate") && link.endsWith("tar.bz2")) {
-            upgradeLinks += link;
-        }
     }
+
+    currentText.clear();
     return true;
+}
+
+bool xmlHandler::endElement(const QString &, const QString &, const QString &qName)
+{
+    if (qName == "media:content" &&
+            info.url.isValid() &&
+            info.filesize != 0 &&
+            !info.md5sum.isEmpty()) {
+        releases.append(info);
+        clearInfo();
+    }
+
+    if (qName == "media:hash") {
+        info.md5sum = currentText.toAscii();
+    }
+
+    return true;
+}
+
+bool xmlHandler::characters(const QString &str)
+{
+    currentText += str;
+    return true;
+}
+
+void xmlHandler::clearInfo()
+{
+    info.filesize = 0;
+    info.md5sum = QByteArray();
+    info.url = QUrl();
 }
