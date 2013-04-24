@@ -18,6 +18,12 @@ bool xmlHandler::startElement(const QString&, const QString &localName, const QS
         if (link.contains("release") && link.endsWith("img.gz")) {
             releaseLinks += link;
         }
+        if (link.contains("bleeding")) {
+            bleeding = link;
+        }
+        if (link.contains("current")) {
+            current = link;
+        }
         if (link.contains("autoupdate") && link.endsWith("tar.bz2")) {
             upgradeLinks += link;
         }

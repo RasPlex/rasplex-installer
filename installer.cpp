@@ -120,8 +120,12 @@ void Installer::parseAndSetLinks(const QByteArray &data)
 
 
         ui->releaseLinks->insertItem (0,version, link);
-        ui->releaseLinks->setCurrentIndex(0);
     }
+
+    // Add current and bleeding
+    ui->releaseLinks->insertItem(0, "bleeding", handler->bleeding);
+    ui->releaseLinks->insertItem(0, "current", handler->current);
+    ui->releaseLinks->setCurrentIndex(0);
 
     // Add upgrade links
     foreach (QString link, handler->upgradeLinks) {
@@ -297,11 +301,13 @@ void Installer::getDownloadLink()
     disableControls();
 
     QString link = ui->releaseLinks->itemData(ui->releaseLinks->currentIndex()).toString();
-    // Try to find file name in url
-    int idx = link.lastIndexOf('/');
-    if (idx > 0) {
-        QString newFileName = link;
-        setImageFileName(newFileName.remove(0, idx+1));
+    if (!link.contains("bleeding") && !link.contains("current")) {
+        // Try to find file name in url
+        int idx = link.lastIndexOf('/');
+        if (idx > 0) {
+            QString newFileName = link;
+            setImageFileName(newFileName.remove(0, idx+1));
+        }
     }
 
     QUrl url(link + "/download");
@@ -321,6 +327,18 @@ void Installer::downloadImage(QNetworkReply *reply)
 
     // This is the first valid packet, save it!
     qDebug() << "Final url:" << downloadUrl << total;
+
+    // Bleeding and current are special
+    if (downloadUrl.toString().contains("bleeding") || downloadUrl.toString().contains("current")) {
+        QString link = reply->readAll();
+        link.chop(strlen("/download\n"));
+        int idx = ui->releaseLinks->findData(link);
+        ui->releaseLinks->setCurrentIndex(idx);
+        reset();
+        ui->downloadButton->click();
+        return;
+    }
+
     if (!imageFile.isOpen() && !imageFile.open(QFile::ReadWrite)) {
         reset();
         return;

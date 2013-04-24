@@ -13,6 +13,8 @@ public:
 
     QStringList releaseLinks;
     QStringList upgradeLinks;
+    QString bleeding;
+    QString current;
 };
 
 #endif // XMLHANDLER_H
