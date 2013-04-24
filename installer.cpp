@@ -57,7 +57,7 @@ Installer::Installer(QWidget *parent) :
     setImageFileName("");
     ui->writeButton->setEnabled(false);
 
-    QFile file("foo.xml");
+    QFile file("sf_data.xml");
     if (file.open(QFile::ReadOnly)) {
         QByteArray data = file.readAll();
         parseAndSetLinks(data);
@@ -370,7 +370,8 @@ void Installer::fileListReply(QNetworkReply *reply)
         switch (state) {
         case STATE_GETTING_LINKS:
             if (responseCode == RESPONSE_OK && reply->isReadable()) {
-                parseAndSetLinks(reply->readAll());
+                replyData = reply->readAll();
+                parseAndSetLinks(replyData);
                 QFile file("sf_data.xml");
                 if (file.open(QFile::WriteOnly)) {
                     file.write(replyData);
