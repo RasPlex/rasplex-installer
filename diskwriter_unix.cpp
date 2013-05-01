@@ -207,21 +207,22 @@ bool DiskWriter_unix::checkIfUSB(QString device) {
 
 bool DiskWriter_unix::checkIsMounted(QString device)
 {
-    bool mounted = false;
-    QProcess chkmount;
-    chkmount.start("mount",QIODevice::ReadOnly);
-    chkmount.waitForStarted();
-    chkmount.waitForFinished();
-
-    QString mount = chkmount.readLine();
-    while (!chkmount.atEnd() && ! mounted) {
-        mount = mount.trimmed(); // Odd trailing whitespace
-        mount = mount.split(QRegExp("\\s+")).first();
-        mounted = mount.indexOf(device) >= 0;
-        mount = chkmount.readLine();
+    char buf[2];
+    QFile mountsFile("/proc/mounts");
+    if (!mountsFile.open(QFile::ReadOnly)) {
+        qDebug() << "Failed to open" << mountsFile.fileName();
+        return true;
     }
 
-    return mounted;
+    // QFile::atEnd() is unreliable for proc
+    while (mountsFile.read(buf, 1) > 0) {
+        QString line = mountsFile.readLine();
+        line.prepend(buf[0]);
+        if (line.contains(device)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 QStringList DiskWriter_unix::getDeviceNamesFromSysfs()

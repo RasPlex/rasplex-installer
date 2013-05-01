@@ -36,6 +36,7 @@ win32 {
     RC_FILE = rasplex-installer.rc
 }
 unix {
+    QMAKE_CXXFLAGS += -fPIC
     SOURCES += diskwriter_unix.cpp
     HEADERS += diskwriter_unix.h
 }
