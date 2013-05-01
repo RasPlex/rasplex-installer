@@ -6,6 +6,7 @@
 #include <QApplication>
 #include <QDir>
 #include <QProcess>
+#include <blkid/blkid.h>
 
 DiskWriter_unix::DiskWriter_unix(QObject *parent) :
     DiskWriter(parent)
@@ -49,7 +50,20 @@ QStringList DiskWriter_unix::getUserFriendlyNamesRemovableDevices(QStringList de
 
     foreach (QString s, devices) {
 #ifdef Q_OS_LINUX
-        // TODO
+        quint64 size = driveSize(s);
+        QStringList partInfo = getPartitionsInfo(s);
+
+        QTextStream friendlyName(&s);
+        friendlyName.setRealNumberNotation(QTextStream::FixedNotation);
+        friendlyName.setRealNumberPrecision(2);
+        friendlyName << " (";
+        friendlyName << size/(1024*1024*1024.0) << " GB, partitions: ";
+        foreach (QString partition, partInfo) {
+            friendlyName << partition << ", ";
+        }
+        s.chop(2);
+        friendlyName << ")";
+
         returnList.append(s);
 #else
         QProcess lsblk;
@@ -204,6 +218,87 @@ bool DiskWriter_unix::checkIfUSB(QString device) {
 #endif
 }
 
+#if defined(Q_OS_LINUX)
+quint64 DiskWriter_unix::driveSize(QString device)
+{
+    blkid_probe pr;
+
+    pr = blkid_new_probe_from_filename(qPrintable(device));
+    if (!pr) {
+        qDebug() << "Failed to open" << device;
+        return -1;
+    }
+
+    blkid_loff_t size = blkid_probe_get_size(pr);
+    blkid_free_probe(pr);
+    return size;
+}
+
+QStringList DiskWriter_unix::getPartitionsInfo(QString device)
+{
+    blkid_probe pr;
+    blkid_partlist ls;
+    int nparts, i;
+    QStringList partList;
+
+    pr = blkid_new_probe_from_filename(qPrintable(device));
+    if (!pr) {
+        qDebug() << "Failed to open" << device;
+        return partList;
+    }
+
+    ls = blkid_probe_get_partitions(pr);
+    if (ls == NULL) {
+        qDebug() << "Failed to get partitions";
+        blkid_free_probe(pr);
+        return partList;
+    }
+
+    nparts = blkid_partlist_numof_partitions(ls);
+    if (nparts < 0) {
+        qDebug() << "Failed to determine number of partitions";
+        blkid_free_probe(pr);
+        return partList;
+    }
+
+    for (i = 0; i < nparts; i++) {
+         blkid_partition par = blkid_partlist_get_partition(ls, i);
+         QString partition;
+         QTextStream stream(&partition);
+         stream << "#" << blkid_partition_get_partno(par) << " - ";
+         //stream << " " << blkid_partition_get_start(par);
+         stream << " " << blkid_partition_get_size(par)*512/(1024*1024.0) << "MB";
+         //stream << " 0x" << hex << blkid_partition_get_type(par);
+         //stream << " (" << QString(blkid_partition_get_type_string(par)) << ")";
+         //stream << " " << QString(blkid_partition_get_name(par));
+         //stream << " " << QString(blkid_partition_get_uuid(par));
+
+         partList << partition;
+    }
+
+    blkid_free_probe(pr);
+    return partList;
+
+    /*
+    if (blkid_do_probe(pr) != 0) {
+        qDebug() << "Probing failed on" << device;
+        blkid_free_probe(pr);
+        continue;
+    }
+
+    if (blkid_probe_has_value(pr, "LABEL") == 0) {
+        qDebug() << "No label for" << device;
+        blkid_free_probe(pr);
+        continue;
+    }
+
+    if (blkid_probe_lookup_value(pr, "LABEL", &label, NULL) != 0) {
+        qDebug() << "Failed to lookup LABEL for" << device;
+        blkid_free_probe(pr);
+        continue;
+    }*/
+}
+#endif
 
 bool DiskWriter_unix::checkIsMounted(QString device)
 {

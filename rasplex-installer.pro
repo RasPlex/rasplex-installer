@@ -39,6 +39,7 @@ unix {
     QMAKE_CXXFLAGS += -fPIC
     SOURCES += diskwriter_unix.cpp
     HEADERS += diskwriter_unix.h
+    LIBS += -lblkid
 }
 
 FORMS    += installer.ui

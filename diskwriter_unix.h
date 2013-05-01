@@ -25,6 +25,10 @@ private:
     bool checkIsMounted(QString device);
     QStringList getDeviceNamesFromSysfs();
     bool checkIfUSB(QString device);
+#if defined(Q_OS_LINUX)
+    quint64 driveSize(QString device);
+    QStringList getPartitionsInfo(QString device);
+#endif
 };
 
 #endif // DISKWRITER_UNIX_H
