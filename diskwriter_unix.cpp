@@ -45,7 +45,7 @@ int DiskWriter_unix::open(QString device)
     return 0;
 }
 
-QStringList DiskWriter_unix::getUserFriendlyNamesRemovableDevices(QStringList devices) {
+QStringList DiskWriter_unix::getUserFriendlyNames(QStringList devices) {
     QStringList returnList;
 
     foreach (QString s, devices) {

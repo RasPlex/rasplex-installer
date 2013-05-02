@@ -79,7 +79,7 @@ void Installer::refreshDeviceList()
     ui->removableDevicesComboBox->clear();
 
     QStringList devNames = diskWriter->getRemovableDeviceNames();
-    QStringList friendlyNames = diskWriter->getUserFriendlyNamesRemovableDevices(devNames);
+    QStringList friendlyNames = diskWriter->getUserFriendlyNames(devNames);
 
     for (int i = 0; i < devNames.size(); i++) {
         ui->removableDevicesComboBox->addItem(friendlyNames[i], devNames[i]);

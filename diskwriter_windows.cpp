@@ -19,7 +19,7 @@ DiskWriter_windows::~DiskWriter_windows()
     }
 }
 
-QStringList DiskWriter_windows::getUserFriendlyNamesRemovableDevices(QStringList devices) {
+QStringList DiskWriter_windows::getUserFriendlyNames(QStringList devices) {
     // Not implemented yet
     return devices;
 }
