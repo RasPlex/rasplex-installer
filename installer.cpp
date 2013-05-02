@@ -355,15 +355,18 @@ void Installer::getDownloadLink()
     state = STATE_GETTING_URL;
     disableControls();
 
+    // Try to find file name in url
     QUrl url = ui->releaseLinks->itemData(ui->releaseLinks->currentIndex()).toUrl();
-    QString link = url.toString();
-    if (!link.contains("bleeding") && !link.contains("current")) {
-        // Try to find file name in url
-        QString newFileName = link.section('/',-2,-2);
-        if (!newFileName.isEmpty()) {
-            setImageFileName(newFileName);
-        }
+    QString newFileName = url.toString().section('/',-2,-2);
+
+    // Ask for final name
+    newFileName = QFileDialog::getSaveFileName(this, tr("Save file"),
+                                               QDir::homePath()+"/"+newFileName);
+    if (newFileName.isEmpty()) {
+        reset();
+        return;
     }
+    setImageFileName(newFileName);
 
     manager.get(createRequest(url, 0, CHUNKSIZE));
 }
@@ -481,7 +484,7 @@ void Installer::fileListReply(QNetworkReply *reply)
 
 void Installer::getImageFileNameFromUser()
 {
-    QString filename = QFileDialog::getOpenFileName(this);
+    QString filename = QFileDialog::getOpenFileName(this, "Open rasplex image", QDir::homePath());
     if (filename.isNull()) {
         return;
     }
