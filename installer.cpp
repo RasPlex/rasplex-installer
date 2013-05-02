@@ -77,8 +77,14 @@ void Installer::refreshDeviceList()
 {
     qDebug() << "Refreshing device list";
     ui->removableDevicesComboBox->clear();
-    ui->removableDevicesComboBox->addItems(diskWriter->getRemovableDeviceNames());
-    // ui->removableDevicesComboBox->addItems(diskWriter->getUserFriendlyNamesRemovableDevices(devices));
+
+    QStringList devNames = diskWriter->getRemovableDeviceNames();
+    QStringList friendlyNames = diskWriter->getUserFriendlyNamesRemovableDevices(devNames);
+
+    for (int i = 0; i < devNames.size(); i++) {
+        ui->removableDevicesComboBox->addItem(friendlyNames[i], devNames[i]);
+    }
+
     ui->removableDevicesComboBox->setCurrentIndex(ui->removableDevicesComboBox->count()-1);
 }
 
@@ -488,9 +494,13 @@ void Installer::writeImageToDevice()
 {
     disableControls();
 
+    int idx = ui->removableDevicesComboBox->currentIndex();
+    QString destination = ui->removableDevicesComboBox->itemData(idx).toString();
+
     QMessageBox::StandardButton ok = QMessageBox::warning(this, tr("Confirm write"),
-                                                          "Are you sure?\n"
-                                                          "This might destroy your data!",
+                                                          "Are you sure you want to write to?\n"
+                                                          + destination +
+                                                          "\n\nThis might destroy your data!",
                                                           QMessageBox::Yes | QMessageBox::No,
                                                           QMessageBox::No);
 
@@ -501,10 +511,6 @@ void Installer::writeImageToDevice()
 
     ui->progressBar->setValue(0);
     ui->progressBar->setMaximum(getUncompressedImageSize());
-
-    // TODO: make portable
-    QString destination = ui->removableDevicesComboBox->currentText();
-
     ui->messageBar->setText("Writing image to "+destination);
 
     if (destination.isNull()) {
