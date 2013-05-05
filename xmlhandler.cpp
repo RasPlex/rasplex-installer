@@ -50,7 +50,7 @@ bool xmlHandler::endElement(const QString &, const QString &, const QString &qNa
     }
 
     if (qName == "media:hash") {
-        info.md5sum = currentText.toAscii();
+        info.md5sum = qPrintable(currentText);
     }
 
     return true;
