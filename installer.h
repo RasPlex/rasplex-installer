@@ -7,6 +7,7 @@
 #include <QCryptographicHash>
 
 class DiskWriter;
+class ConfigHandler;
 
 namespace Ui {
 class Installer;
@@ -60,6 +61,7 @@ private:
     QFile imageFile;
     QUrl downloadUrl;
     DiskWriter *diskWriter;
+    ConfigHandler *configHandler;
     bool isCancelled;
 
 private slots:

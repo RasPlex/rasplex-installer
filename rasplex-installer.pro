@@ -13,7 +13,8 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
     installer.cpp \
-    xmlhandler.cpp
+    xmlhandler.cpp \
+    confighandler.cpp
 
 static { # everything below takes effect with CONFIG += static
     CONFIG += static
@@ -26,19 +27,24 @@ HEADERS  += installer.h \
     xmlhandler.h \
     diskwriter.h \
     zlib.h \
-    zconf.h
+    zconf.h \
+    confighandler.h
 
 win32 {
-    SOURCES += diskwriter_windows.cpp
-    HEADERS += diskwriter_windows.h
+    SOURCES += diskwriter_windows.cpp \
+        confighandler_windows.cpp
+    HEADERS += diskwriter_windows.h \
+        confighandler_windows.h
     CONFIG += rtti
     QMAKE_LFLAGS  = -static -static-libgcc
     RC_FILE = rasplex-installer.rc
 }
 unix {
     QMAKE_CXXFLAGS += -fPIC
-    SOURCES += diskwriter_unix.cpp
-    HEADERS += diskwriter_unix.h
+    SOURCES += diskwriter_unix.cpp \
+        confighandler_unix.cpp
+    HEADERS += diskwriter_unix.h \
+        confighandler_unix.h
     LIBS += -lblkid
 }
 

@@ -13,8 +13,10 @@
 
 #if defined(Q_OS_WIN)
 #include "diskwriter_windows.h"
+#include "confighandler_windows.h"
 #elif defined(Q_OS_UNIX)
 #include "diskwriter_unix.h"
+#include "confighandler_unix.h"
 #endif
 
 // TODO: Get chunk size from server, or whatever
@@ -32,8 +34,10 @@ Installer::Installer(QWidget *parent) :
 
 #if defined(Q_OS_WIN)
     diskWriter = new DiskWriter_windows(this);
+    configHandler = new ConfigHandler_windows();
 #elif defined(Q_OS_UNIX)
     diskWriter = new DiskWriter_unix(this);
+    configHandler = new ConfigHandler_unix();
 #endif
 
     refreshDeviceList();
