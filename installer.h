@@ -73,6 +73,7 @@ private slots:
     void fileListReply(QNetworkReply *reply);
     void getImageFileNameFromUser();
     void writeImageToDevice();
+    void selectVideoOutput();
 };
 
 #endif // INSTALLER_H

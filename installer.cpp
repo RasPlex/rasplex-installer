@@ -50,7 +50,10 @@ Installer::Installer(QWidget *parent) :
     connect(ui->writeButton, SIGNAL(clicked()), this, SLOT(writeImageToDevice()));
     connect(diskWriter, SIGNAL(bytesWritten(int)), ui->progressBar, SLOT(setValue(int)));
     connect(ui->refreshDeiceListButton,SIGNAL(clicked()),this,SLOT(refreshDeviceList()));
-    ui->videoGroupBox->setVisible(false);
+    connect(ui->hdmiOutputButton, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
+    connect(ui->sdtvOutputButton, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
+
+    ui->videoGroupBox->setVisible(configHandler->implemented());
     ui->upgradeLabel->setVisible(false);
     ui->upgradeLinks->setVisible(false);
 
@@ -75,6 +78,8 @@ Installer::Installer(QWidget *parent) :
 Installer::~Installer()
 {
     delete ui;
+    delete diskWriter;
+    delete configHandler;
 }
 
 void Installer::refreshDeviceList()
@@ -543,6 +548,30 @@ void Installer::writeImageToDevice()
         return;
     }
 
+    // Make sure the config is updated
+    selectVideoOutput();
+
     reset();
     qDebug() << "Writing done!";
+}
+
+void Installer::selectVideoOutput()
+{
+    if (!configHandler->implemented()) {
+        return;
+    }
+
+    int idx = ui->removableDevicesComboBox->currentIndex();
+    if (!configHandler->mount(ui->removableDevicesComboBox->itemData(idx).toString())) {
+        return;
+    }
+
+    if (ui->hdmiOutputButton->isChecked()) {
+        configHandler->changeSetting("hdmi_force_hotplug", 1);
+    }
+    else {
+        configHandler->changeSetting("hdmi_force_hotplug", 0);
+    }
+    ui->messageBar->setText("Settings changed");
+    configHandler->unMount();
 }

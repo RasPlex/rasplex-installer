@@ -6,7 +6,7 @@
 class ConfigHandler
 {
 public:
-    ConfigHandler() {}
+    ConfigHandler() : filename("config.txt") {}
     virtual ~ConfigHandler() {}
 
     // OS dependant stuff
