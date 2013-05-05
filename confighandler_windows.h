@@ -7,7 +7,7 @@ class ConfigHandler_windows : public ConfigHandler
 {
 public:
     ConfigHandler_windows() {}
-    ~ConfigHandler_windows();
+    ~ConfigHandler_windows() {}
 
     bool implemented();
     bool mount(const QString &device);
