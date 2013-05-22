@@ -52,6 +52,10 @@ Installer::Installer(QWidget *parent) :
     connect(ui->refreshDeiceListButton,SIGNAL(clicked()),this,SLOT(refreshDeviceList()));
     connect(ui->hdmiOutputButton, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
     connect(ui->sdtvOutputButton, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
+    connect(ui->sdtvMode_0, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
+    connect(ui->sdtvMode_1, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
+    connect(ui->sdtvMode_2, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
+    connect(ui->sdtvMode_3, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
 
     ui->videoGroupBox->setVisible(configHandler->implemented());
     ui->upgradeLabel->setVisible(false);
@@ -571,6 +575,17 @@ void Installer::selectVideoOutput()
     }
     else {
         configHandler->changeSetting("hdmi_force_hotplug", 0);
+        if (ui->sdtvMode_0->isChecked()) {
+            configHandler->changeSetting("sdtv_mode", 0);
+        } else if (ui->sdtvMode_1->isChecked()) {
+            configHandler->changeSetting("sdtv_mode", 1);
+        } else if (ui->sdtvMode_2->isChecked()) {
+            configHandler->changeSetting("sdtv_mode", 2);
+        } else if (ui->sdtvMode_3->isChecked()) {
+            configHandler->changeSetting("sdtv_mode", 3);
+        } else {
+            // Shouldn't be possible!
+        }
     }
     ui->messageBar->setText("Settings changed");
     configHandler->unMount();
