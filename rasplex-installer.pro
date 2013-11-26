@@ -14,7 +14,8 @@ TEMPLATE = app
 SOURCES += main.cpp\
     installer.cpp \
     xmlhandler.cpp \
-    confighandler.cpp
+    confighandler.cpp \
+    downloadmanager.cpp
 
 static { # everything below takes effect with CONFIG += static
     CONFIG += static
@@ -28,7 +29,8 @@ HEADERS  += installer.h \
     diskwriter.h \
     zlib.h \
     zconf.h \
-    confighandler.h
+    confighandler.h \
+    downloadmanager.h
 
 win32 {
     SOURCES += diskwriter_windows.cpp \

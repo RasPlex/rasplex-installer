@@ -6,6 +6,8 @@
 #include <QNetworkAccessManager>
 #include <QCryptographicHash>
 
+#include "downloadmanager.h"
+
 class DiskWriter;
 class ConfigHandler;
 
@@ -25,11 +27,10 @@ private:
     Ui::Installer *ui;
 
     QXmlSimpleReader xmlReader;
-    QNetworkAccessManager manager;
+    DownloadManager* manager;
 
     void parseAndSetLinks(const QByteArray &data);
     void saveAndUpdateProgress(QNetworkReply *reply);
-    void extractByteOffsetsFromContentLength(qlonglong &first, qlonglong &last, qlonglong &total, QString s);
     void reset();
     void disableControls();
     bool isChecksumValid();
@@ -65,12 +66,12 @@ private:
     bool isCancelled;
 
 private slots:
+    void handleFinishedDownload(const QByteArray& data);
+    void handlePartialData(const QByteArray& data, qlonglong idx, qlonglong total);
     void cancel();
     void updateLinks();
-    void getDownloadLink();
     void refreshDeviceList();
-    void downloadImage(QNetworkReply *reply);
-    void fileListReply(QNetworkReply *reply);
+    void downloadImage();
     void getImageFileNameFromUser();
     void writeImageToDevice();
     void selectVideoOutput();
