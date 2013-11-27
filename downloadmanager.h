@@ -1,30 +1,31 @@
 #ifndef DOWNLOADMANAGER_H
 #define DOWNLOADMANAGER_H
 
-#include <QNetworkAccessManager>
+#include <QObject>
 
+class QNetworkAccessManager;
+class QNetworkReply;
 class QUrl;
 
-class DownloadManager : public QNetworkAccessManager
+class DownloadManager : public QObject
 {
     Q_OBJECT
 public:
     explicit DownloadManager(QObject *parent = 0);
+    ~DownloadManager();
 
-    QByteArray readAll();
-    QNetworkReply* get(const QUrl& url, qlonglong size = -1);
+    QNetworkReply* get(const QUrl& url);
 
 signals:
     void downloadComplete(const QByteArray&);
-    void partialData(const QByteArray&, qlonglong idx, qlonglong total);
+    void partialData(const QByteArray, qlonglong total);
 
 private slots:
     void handleGetFinished(QNetworkReply*);
     void handleReadyRead();
 
 private:
-    QNetworkReply* createRequest(Operation op, const QNetworkRequest &request, QIODevice *outgoingData);
-    qlonglong bytesDownloaded;
+    QNetworkAccessManager* manager;
     QNetworkReply* latestReply;
 
     enum {
@@ -35,12 +36,6 @@ private:
         RESPONSE_BAD_REQUEST = 400,
         RESPONSE_NOT_FOUND = 404
     };
-
-    void handlePartial(QNetworkReply *reply);
-    void extractByteOffsetsFromContentLength(qlonglong &first, qlonglong &last, qlonglong &total, QString s);
-    QByteArray rangeToByteArray(qlonglong first, qlonglong last)
-    { return "bytes=" + QByteArray::number(first) + "-" + QByteArray::number(last); }
-
 };
 
 #endif // DOWNLOADMANAGER_H

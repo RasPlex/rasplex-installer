@@ -43,8 +43,8 @@ Installer::Installer(QWidget *parent) :
     refreshDeviceList();
 
     connect(manager, SIGNAL(downloadComplete(QByteArray)), this, SLOT(handleFinishedDownload(QByteArray)));
-    connect(manager, SIGNAL(partialData(QByteArray,qlonglong,qlonglong)),
-            this, SLOT(handlePartialData(QByteArray,qlonglong,qlonglong)));
+    connect(manager, SIGNAL(partialData(QByteArray,qlonglong)),
+            this, SLOT(handlePartialData(QByteArray,qlonglong)));
     connect(ui->linksButton, SIGNAL(clicked()), this, SLOT(updateLinks()));
     connect(ui->downloadButton, SIGNAL(clicked()), this, SLOT(downloadImage()));
     connect(ui->cancelButton, SIGNAL(clicked()), this, SLOT(cancel()));
@@ -112,6 +112,7 @@ void Installer::cancel()
     if (!isCancelled)
         isCancelled = true;
 
+    reset();
 }
 
 void Installer::parseAndSetLinks(const QByteArray &data)
@@ -280,6 +281,7 @@ void Installer::setImageFileName(QString filename)
     imageFileName = filename;
     imageFile.setFileName(imageFileName);
 
+    /* Remove full path for display */
     int idx = filename.lastIndexOf('/');
     if (idx > 0) {
         filename.remove(0, idx+1);
@@ -294,6 +296,7 @@ void Installer::handleFinishedDownload(const QByteArray &data)
         parseAndSetLinks(data);
         break;
     case STATE_DOWNLOADING_IMAGE:
+#if 0
         // Bleeding and current are special
         if (downloadUrl.toString().contains("bleeding") || downloadUrl.toString().contains("current")) {
             QString url = data.trimmed();
@@ -303,6 +306,7 @@ void Installer::handleFinishedDownload(const QByteArray &data)
             ui->downloadButton->click();
             return;
         }
+#endif
         break;
 
     default:
@@ -310,7 +314,7 @@ void Installer::handleFinishedDownload(const QByteArray &data)
     }
 }
 
-void Installer::handlePartialData(const QByteArray &data, qlonglong idx, qlonglong total)
+void Installer::handlePartialData(const QByteArray &data, qlonglong total)
 {
     if (state != STATE_DOWNLOADING_IMAGE) {
         /* What to do? */
@@ -318,7 +322,6 @@ void Installer::handlePartialData(const QByteArray &data, qlonglong idx, qlonglo
         return;
     }
 
-    imageFile.seek(idx);
     imageFile.write(data);
     imageHash.addData(data);
     bytesDownloaded += data.size();
@@ -330,22 +333,13 @@ void Installer::handlePartialData(const QByteArray &data, qlonglong idx, qlonglo
 
     if (bytesDownloaded == total) {
         imageFile.close();
+        qDebug() << "Download complete, verifying checksum";
         // Done! Let's check checksum!
-        if (!isChecksumValid()) {
-            reset();
-            ui->messageBar->setText("Wrong md5 sum! Please re-download.");
-            return;
-        }
         reset();
+        if (!isChecksumValid()) {
+            ui->messageBar->setText("Wrong md5 sum! Please re-download.");
+        }
     }
-
-#if 0
-    // This is the first valid packet, save it!
-    while (last <= total && ! isCancelled) {
-        manager.get(createRequest(downloadUrl, last+1, (last+CHUNKSIZE >= total ? total-1 : last+CHUNKSIZE)));
-        last += CHUNKSIZE;
-    }
-#endif
 }
 
 void Installer::updateLinks()
@@ -374,8 +368,12 @@ void Installer::downloadImage()
         return;
     }
 
+    if (imageFile.isOpen())
+        imageFile.close();
+
     setImageFileName(newFileName);
-    if (!imageFile.open(QFile::ReadWrite)) {
+
+    if (!imageFile.open(QFile::WriteOnly | QFile::Truncate)) {
         reset();
         return;
     }

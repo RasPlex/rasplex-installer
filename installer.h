@@ -67,7 +67,7 @@ private:
 
 private slots:
     void handleFinishedDownload(const QByteArray& data);
-    void handlePartialData(const QByteArray& data, qlonglong idx, qlonglong total);
+    void handlePartialData(const QByteArray& data, qlonglong total);
     void cancel();
     void updateLinks();
     void refreshDeviceList();
