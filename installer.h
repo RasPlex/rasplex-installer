@@ -60,7 +60,7 @@ private:
     QString imageFileName;
     QCryptographicHash imageHash;
     QFile imageFile;
-    QUrl downloadUrl;
+    QString downloadUrl;
     DiskWriter *diskWriter;
     ConfigHandler *configHandler;
     bool isCancelled;

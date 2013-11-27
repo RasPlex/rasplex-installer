@@ -295,18 +295,20 @@ void Installer::handleFinishedDownload(const QByteArray &data)
     case STATE_GETTING_LINKS:
         parseAndSetLinks(data);
         break;
+
+    case STATE_GETTING_URL:{
+        /* This should be it! */
+        downloadUrl.append(data);
+        downloadUrl = downloadUrl.trimmed();
+        qDebug() << "Got url" << downloadUrl;
+        int idx = ui->releaseLinks->findData(downloadUrl);
+        ui->releaseLinks->setCurrentIndex(idx);
+        reset();
+        ui->downloadButton->click();
+        break;
+    }
+
     case STATE_DOWNLOADING_IMAGE:
-#if 0
-        // Bleeding and current are special
-        if (downloadUrl.toString().contains("bleeding") || downloadUrl.toString().contains("current")) {
-            QString url = data.trimmed();
-            int idx = ui->releaseLinks->findData(url);
-            ui->releaseLinks->setCurrentIndex(idx);
-            reset();
-            ui->downloadButton->click();
-            return;
-        }
-#endif
         break;
 
     default:
@@ -316,6 +318,11 @@ void Installer::handleFinishedDownload(const QByteArray &data)
 
 void Installer::handlePartialData(const QByteArray &data, qlonglong total)
 {
+    if (state == STATE_GETTING_URL) {
+        downloadUrl.append(data);
+        return;
+    }
+
     if (state != STATE_DOWNLOADING_IMAGE) {
         /* What to do? */
         qDebug() << "Got unexpected data!";
@@ -355,30 +362,38 @@ void Installer::downloadImage()
 {
     state = STATE_DOWNLOADING_IMAGE;
     disableControls();
-
-    // Try to find file name in url
     QUrl url = ui->releaseLinks->itemData(ui->releaseLinks->currentIndex()).toUrl();
-    QString newFileName = url.toString().section('/',-2,-2);
 
-    // Ask for final name
-    newFileName = QFileDialog::getSaveFileName(this, tr("Save file"),
-                                               QDir::homePath()+"/"+newFileName);
-    if (newFileName.isEmpty()) {
-        reset();
-        return;
+    // Bleeding and current are special
+    if (url.toString().contains("bleeding") || url.toString().contains("current")) {
+        ui->messageBar->setText("Getting URL");
+        downloadUrl.clear();
+        state = STATE_GETTING_URL;
     }
+    else {
+        // Try to find file name in url
+        QString newFileName = url.toString().section('/',-2,-2);
 
-    if (imageFile.isOpen())
-        imageFile.close();
+        // Ask for final name
+        newFileName = QFileDialog::getSaveFileName(this, tr("Save file"),
+                                                   QDir::homePath()+"/"+newFileName);
+        if (newFileName.isEmpty()) {
+            reset();
+            return;
+        }
 
-    setImageFileName(newFileName);
+        if (imageFile.isOpen())
+            imageFile.close();
 
-    if (!imageFile.open(QFile::WriteOnly | QFile::Truncate)) {
-        reset();
-        return;
+        setImageFileName(newFileName);
+
+        if (!imageFile.open(QFile::WriteOnly | QFile::Truncate)) {
+            reset();
+            return;
+        }
+
+        imageHash.reset();
     }
-
-    imageHash.reset();
     manager->get(url);
 }
 
