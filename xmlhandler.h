@@ -22,6 +22,7 @@ public:
 
     QList<DownloadInfo> releases;
     QList<DownloadInfo> autoupdates;
+    DownloadInfo experimental;
     DownloadInfo bleeding;
     DownloadInfo current;
 

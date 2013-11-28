@@ -8,7 +8,7 @@ bool xmlHandler::startElement(const QString &, const QString &, const QString &q
             QString url = atts.value("url");
 
             // Filter out rasplexdev builds
-            if (!url.contains("release")) {
+            if (!url.contains("release") && !url.contains("experimental")) {
                 return true;
             }
 
@@ -24,6 +24,10 @@ bool xmlHandler::startElement(const QString &, const QString &, const QString &q
             // Work around bug in sourceforge data
             url.replace("/project/", "/projects/");
 
+            if (url.contains("experimental")) {
+                experimental.url = url;
+                experimental.filesize = atts.value("filesize").toUInt();
+            }
             if (url.contains("bleeding")) {
                 bleeding.url = url;
                 bleeding.filesize = atts.value("filesize").toUInt();

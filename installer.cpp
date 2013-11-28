@@ -146,7 +146,8 @@ void Installer::parseAndSetLinks(const QByteArray &data)
         ui->releaseLinks->insertItem (0, version, link);
     }
 
-    // Add current and bleeding
+    // Add current, bleeding, and experimental
+    ui->releaseLinks->insertItem(0, "experimental", handler->experimental.url);
     ui->releaseLinks->insertItem(0, "bleeding", handler->bleeding.url);
     ui->releaseLinks->insertItem(0, "current", handler->current.url);
     ui->releaseLinks->setCurrentIndex(0);
@@ -362,10 +363,14 @@ void Installer::downloadImage()
 {
     state = STATE_DOWNLOADING_IMAGE;
     disableControls();
+    QString selectedVersion = ui->releaseLinks->itemText(ui->releaseLinks->currentIndex());
     QUrl url = ui->releaseLinks->itemData(ui->releaseLinks->currentIndex()).toUrl();
 
-    // Bleeding and current are special
-    if (url.toString().contains("bleeding") || url.toString().contains("current")) {
+    qDebug() << "Downloading" << url;
+    // Handle special releases
+    if (    selectedVersion == "bleeding" ||
+            selectedVersion == "current" ||
+            selectedVersion == "experimental") {
         ui->messageBar->setText("Getting URL");
         downloadUrl.clear();
         state = STATE_GETTING_URL;
