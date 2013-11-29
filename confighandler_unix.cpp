@@ -51,6 +51,6 @@ bool ConfigHandler_unix::mount(const QString &device)
 
 void ConfigHandler_unix::unMount()
 {
-    umount(qPrintable(RASPLEX_MOUNT_POINT));
+ //   umount(qPrintable(RASPLEX_MOUNT_POINT));
     qDebug() << "Unmounted" << RASPLEX_MOUNT_POINT;
 }

@@ -76,3 +76,11 @@ navigate to rasplex-installer directory, and run the qmake that you just built a
 
 then just run mingw32-make
 
+
+# OS X:
+
+You can't really do a static build very easily... just use "macdeployqt"
+
+to bundle for osx, use "macdeployqt" on the target app, then open the main.scpt in applescript editor, and export as app.
+
+Merge the two together with cp -r, and then drop in the info.plst and icon file. voila!

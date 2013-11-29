@@ -6,8 +6,9 @@
 #include <QApplication>
 #include <QDir>
 #include <QProcess>
+#ifndef Q_OS_MAC
 #include <blkid/blkid.h>
-
+#endif
 DiskWriter_unix::DiskWriter_unix(QObject *parent) :
     DiskWriter(parent)
 {

@@ -47,7 +47,7 @@ unix {
         confighandler_unix.cpp
     HEADERS += diskwriter_unix.h \
         confighandler_unix.h
-    LIBS += -lblkid
+    #LIBS += -lblkid
 }
 
 FORMS    += installer.ui
