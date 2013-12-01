@@ -13,8 +13,9 @@ public:
     DiskWriter(QObject *parent = 0) : QObject(parent) {}
     virtual ~DiskWriter() {}
 
-public slots:
     void cancelWrite();
+
+public slots:
     virtual bool writeCompressedImageToRemovableDevice(const QString &filename, const QString& device);
 
 signals:
@@ -24,7 +25,7 @@ signals:
     void error(const QString& message);
 
 protected:
-    bool isCancelled;
+    volatile bool isCancelled;
 
     virtual bool open(const QString& device) = 0;
     virtual void close() = 0;

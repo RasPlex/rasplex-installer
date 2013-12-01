@@ -48,8 +48,6 @@ bool DiskWriter::writeCompressedImageToRemovableDevice(const QString &filename, 
             return false;
         }
         emit bytesWritten(gztell(src));
-        // Needed for cancelWrite() to work
-        QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
         r = gzread(src, buf, sizeof(buf));
     }
 
