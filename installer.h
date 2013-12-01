@@ -8,6 +8,7 @@
 
 #include "downloadmanager.h"
 
+class QThread;
 class DiskWriter;
 class DeviceEnumerator;
 class ConfigHandler;
@@ -63,9 +64,13 @@ private:
     QFile imageFile;
     QString downloadUrl;
     DiskWriter *diskWriter;
+    QThread* diskWriterThread;
     DeviceEnumerator* devEnumerator;
     ConfigHandler *configHandler;
     bool isCancelled;
+
+signals:
+    void proceedToWriteImageToDevice(const QString& image, const QString& device);
 
 private slots:
     void handleFinishedDownload(const QByteArray& data);
@@ -77,6 +82,9 @@ private slots:
     void getImageFileNameFromUser();
     void writeImageToDevice();
     void selectVideoOutput();
+    void writingFinished();
+    void writingSyncing();
+    void showError(const QString& message);
 };
 
 #endif // INSTALLER_H

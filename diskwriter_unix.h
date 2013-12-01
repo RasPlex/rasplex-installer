@@ -21,6 +21,7 @@ private:
 
     bool open(const QString &device);
     void close();
+    void sync();
     bool isOpen();
 };
 

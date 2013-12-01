@@ -19,12 +19,16 @@ public slots:
 
 signals:
     void bytesWritten(int);
+    void syncing();
+    void finished();
+    void error(const QString& message);
 
 protected:
     bool isCancelled;
 
     virtual bool open(const QString& device) = 0;
     virtual void close() = 0;
+    virtual void sync() = 0;
     virtual bool isOpen() = 0;
 };
 

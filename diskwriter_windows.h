@@ -21,6 +21,7 @@ private:
 
     int open(const QString& device);
     void close();
+    void sync();
     bool isOpen();
 
     HANDLE hVolume;

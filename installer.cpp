@@ -10,6 +10,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QMessageBox>
+#include <QThread>
 
 #if defined(Q_OS_WIN)
 #include "diskwriter_windows.h"
@@ -35,14 +36,24 @@ Installer::Installer(QWidget *parent) :
     ui->setupUi(this);
 
 #if defined(Q_OS_WIN)
-    diskWriter = new DiskWriter_windows(this);
+    diskWriter = new DiskWriter_windows();
     devEnumerator = new DeviceEnumerator_windows();
     configHandler = new ConfigHandler_windows();
 #elif defined(Q_OS_UNIX)
-    diskWriter = new DiskWriter_unix(this);
+    diskWriter = new DiskWriter_unix();
     devEnumerator = new DeviceEnumerator_unix();
     configHandler = new ConfigHandler_unix();
 #endif
+    diskWriterThread = new QThread(this);
+    diskWriter->moveToThread(diskWriterThread);
+    connect(diskWriterThread, SIGNAL(finished()), diskWriter, SLOT(deleteLater()));
+    connect(this, SIGNAL(proceedToWriteImageToDevice(QString,QString)),
+            diskWriter, SLOT(writeCompressedImageToRemovableDevice(QString,QString)));
+    connect(diskWriter, SIGNAL(bytesWritten(int)), ui->progressBar, SLOT(setValue(int)));
+    connect(diskWriter, SIGNAL(syncing()), this, SLOT(writingSyncing()));
+    connect(diskWriter, SIGNAL(finished()), this, SLOT(writingFinished()));
+    connect(diskWriter, SIGNAL(error(QString)), this, SLOT(showError(QString)));
+    diskWriterThread->start();
 
     refreshDeviceList();
 
@@ -55,7 +66,6 @@ Installer::Installer(QWidget *parent) :
     connect(ui->cancelButton, SIGNAL(clicked()), diskWriter, SLOT(cancelWrite()));
     connect(ui->loadButton, SIGNAL(clicked()), this, SLOT(getImageFileNameFromUser()));
     connect(ui->writeButton, SIGNAL(clicked()), this, SLOT(writeImageToDevice()));
-    connect(diskWriter, SIGNAL(bytesWritten(int)), ui->progressBar, SLOT(setValue(int)));
     connect(ui->refreshDeiceListButton,SIGNAL(clicked()),this,SLOT(refreshDeviceList()));
     connect(ui->hdmiOutputButton, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
     connect(ui->sdtvOutputButton, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
@@ -89,7 +99,10 @@ Installer::Installer(QWidget *parent) :
 Installer::~Installer()
 {
     delete ui;
-    delete diskWriter;
+    diskWriter->cancelWrite();
+    diskWriterThread->quit();
+    diskWriterThread->wait();
+    delete diskWriterThread;
     delete devEnumerator;
     delete configHandler;
 }
@@ -448,17 +461,7 @@ void Installer::writeImageToDevice()
         imageFile.close();
     }
 
-    if (!diskWriter->writeCompressedImageToRemovableDevice(imageFileName, destination)) {
-        qDebug() << "Writing failed";
-        reset();
-        return;
-    }
-
-    // Make sure the config is updated
-    selectVideoOutput();
-
-    reset();
-    qDebug() << "Writing done!";
+    emit proceedToWriteImageToDevice(imageFileName, destination);
 }
 
 void Installer::selectVideoOutput()
@@ -491,4 +494,25 @@ void Installer::selectVideoOutput()
     }
     ui->messageBar->setText("Settings changed");
     configHandler->unMount();
+}
+
+void Installer::writingFinished()
+{
+    // Make sure the config is updated
+    selectVideoOutput();
+
+    reset();
+    qDebug() << "Writing done!";
+}
+
+void Installer::writingSyncing()
+{
+    if (state == STATE_WRITING_IMAGE)
+        ui->messageBar->setText("Syncing file system");
+}
+
+void Installer::showError(const QString &message)
+{
+    reset();
+    ui->messageBar->setText(message);
 }

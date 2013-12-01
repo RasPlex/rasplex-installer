@@ -4,6 +4,7 @@
 
 #include <QDebug>
 #include <QApplication>
+#include <unistd.h>
 
 DiskWriter_unix::DiskWriter_unix(QObject *parent) :
     DiskWriter(parent)
@@ -42,6 +43,13 @@ void DiskWriter_unix::close()
     dev.close();
 }
 
+void DiskWriter_unix::sync()
+{
+    if (this->isOpen()) {
+        fsync(dev.handle());
+    }
+}
+
 bool DiskWriter_unix::isOpen()
 {
     return dev.isOpen();
@@ -61,20 +69,22 @@ bool DiskWriter_unix::writeCompressedImageToRemovableDevice(const QString &filen
     isCancelled = false;
 
     if (!open(device)) {
-        qDebug() << "Could not open" << device;
+        emit error("Couldn't open " + device);
         return false;
     }
 
     // Open source
     gzFile src = gzopen(filename.toStdString().c_str(), "rb");
     if (src == NULL) {
-        qDebug() << "Couldn't open file:" << filename;
+        emit error("Couldn't open " + filename);
+        this->close();
         return false;
     }
 
     if (gzbuffer(src, 128*1024) != 0) {
-        qDebug() << "Failed to set buffer size";
+        emit error("Failed to set gz buffer size");
         gzclose_r(src);
+        this->close();
         return false;
     }
 
@@ -83,23 +93,33 @@ bool DiskWriter_unix::writeCompressedImageToRemovableDevice(const QString &filen
         // TODO: Sanity check
         ok = dev.write(buf, r);
         if (!ok) {
-            qDebug() << "Error writing";
+            emit error("Failed to write to " + device + "!");
+            gzclose(src);
+            this->close();
             return false;
         }
         emit bytesWritten(gztell(src));
-        QApplication::processEvents();
+        // Needed for cancelWrite() to work
+        QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
         r = gzread(src, buf, sizeof(buf));
     }
 
-    isCancelled = false;
     if (r < 0) {
+        emit error("Failed to read from " + filename + "!");
         gzclose_r(src);
-        qDebug() << "Error reading file!";
+        this->close();
         return false;
     }
 
-    dev.close();
+    emit syncing();
     gzclose_r(src);
+    this->sync();
+    this->close();
+
+    if (!isCancelled) {
+        emit finished();
+    }
+    isCancelled = false;
     return true;
 }
 
