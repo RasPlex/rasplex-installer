@@ -53,6 +53,10 @@ unix {
     HEADERS += diskwriter_unix.h \
         confighandler_unix.h \
         deviceenumerator_unix.h
+
+}
+
+linux {
     LIBS += -lblkid
 }
 

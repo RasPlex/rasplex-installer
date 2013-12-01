@@ -114,7 +114,7 @@ bool DeviceEnumerator_unix::checkIsMounted(const QString &device) const
     return false;
 }
 
-bool DeviceEnumerator_unix::checkIfUSB(const QString &device)
+bool DeviceEnumerator_unix::checkIfUSB(const QString &device) const
 {
 #ifdef Q_OS_LINUX
     //TODO

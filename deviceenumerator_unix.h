@@ -12,7 +12,7 @@ public:
 
 private:
     bool checkIsMounted(const QString& device) const;
-    bool checkIfUSB(const QString& device);
+    bool checkIfUSB(const QString& device) const;
     QStringList getDeviceNamesFromSysfs() const;
 #if defined(Q_OS_LINUX)
     quint64 driveSize(const QString &device) const;

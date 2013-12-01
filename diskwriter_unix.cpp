@@ -3,6 +3,11 @@
 #include <QDebug>
 #include <unistd.h>
 
+#ifdef Q_OS_MAC
+#include <QProcess>
+#endif
+
+
 DiskWriter_unix::DiskWriter_unix(QObject *parent) :
     DiskWriter(parent)
 {
@@ -20,17 +25,18 @@ bool DiskWriter_unix::open(const QString& device)
 {
 #ifdef Q_OS_MAC
     // Write to RAW device, this is MUCH faster
-    device.replace("/dev/","/dev/r");
+    QString rawdev(device);
+    rawdev.replace(QString("/dev/"),QString("/dev/r"));
 
     /* Unmount the device */
     QProcess unmount;
-    unmount.start("diskutil unmountDisk "+device, QIODevice::ReadOnly);
+    unmount.start("diskutil unmountDisk "+rawdev, QIODevice::ReadOnly);
     unmount.waitForStarted();
     unmount.waitForFinished();
     qDebug() << unmount.readAll();
 #endif
 
-    dev.setFileName(device);
+    dev.setFileName(rawdev);
     return dev.open(QFile::WriteOnly);
 }
 
