@@ -76,11 +76,6 @@ bool DiskWriter_windows::isOpen()
     return (hRawDisk != INVALID_HANDLE_VALUE && hVolume != INVALID_HANDLE_VALUE);
 }
 
-void DiskWriter_windows::cancelWrite()
-{
-    isCancelled = true;
-}
-
 bool DiskWriter_windows::writeCompressedImageToRemovableDevice(const QString &filename, const QString &device)
 {
     int r;

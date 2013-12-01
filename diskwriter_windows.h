@@ -13,7 +13,6 @@ public:
     ~DiskWriter_windows();
 
 public slots:
-    void cancelWrite();
     bool writeCompressedImageToRemovableDevice(const QString &filename, const QString &device);
 
 private:

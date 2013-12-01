@@ -14,7 +14,6 @@ public:
 
 public slots:
     bool writeCompressedImageToRemovableDevice(const QString &filename, const QString& device);
-    void cancelWrite();
 
 private:
     QFile dev;

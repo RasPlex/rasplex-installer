@@ -14,7 +14,7 @@ public:
     virtual ~DiskWriter() {}
 
 public slots:
-    virtual void cancelWrite() = 0;
+    void cancelWrite();
     virtual bool writeCompressedImageToRemovableDevice(const QString &filename, const QString& device) = 0;
 
 signals:

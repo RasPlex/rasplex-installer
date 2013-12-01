@@ -55,11 +55,6 @@ bool DiskWriter_unix::isOpen()
     return dev.isOpen();
 }
 
-void DiskWriter_unix::cancelWrite()
-{
-    isCancelled = true;
-}
-
 bool DiskWriter_unix::writeCompressedImageToRemovableDevice(const QString &filename, const QString &device)
 {
     int r;
