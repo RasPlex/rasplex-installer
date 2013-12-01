@@ -23,6 +23,7 @@ DiskWriter_unix::~DiskWriter_unix()
 
 bool DiskWriter_unix::open(const QString& device)
 {
+    dev.setFileName(device);
 #ifdef Q_OS_MAC
     // Write to RAW device, this is MUCH faster
     QString rawdev(device);
@@ -34,9 +35,9 @@ bool DiskWriter_unix::open(const QString& device)
     unmount.waitForStarted();
     unmount.waitForFinished();
     qDebug() << unmount.readAll();
+    dev.setFileName(rawdev);
 #endif
 
-    dev.setFileName(rawdev);
     return dev.open(QFile::WriteOnly);
 }
 
