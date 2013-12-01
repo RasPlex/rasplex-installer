@@ -31,6 +31,12 @@ QNetworkReply* DownloadManager::get(const QUrl &url)
     return latestReply;
 }
 
+void DownloadManager::cancelDownload()
+{
+    if (latestReply)
+        latestReply->abort();
+}
+
 void DownloadManager::handleGetFinished(QNetworkReply *reply)
 {
     if(reply->error() == QNetworkReply::NoError)

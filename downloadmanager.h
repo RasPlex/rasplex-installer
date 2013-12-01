@@ -20,6 +20,9 @@ signals:
     void downloadComplete(const QByteArray&);
     void partialData(const QByteArray, qlonglong total);
 
+public slots:
+    void cancelDownload();
+
 private slots:
     void handleGetFinished(QNetworkReply*);
     void handleReadyRead();
