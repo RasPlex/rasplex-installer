@@ -7,7 +7,9 @@
 #include <QMessageBox>
 
 DiskWriter_windows::DiskWriter_windows(QObject *parent) :
-    DiskWriter(parent)
+    DiskWriter(parent),
+    hVolume(INVALID_HANDLE_VALUE),
+    hRawDisk(INVALID_HANDLE_VALUE)
 {
     isCancelled = false;
 }
@@ -19,14 +21,15 @@ DiskWriter_windows::~DiskWriter_windows()
     }
 }
 
-int DiskWriter_windows::open(const QString &device)
+bool DiskWriter_windows::open(const QString &device)
 {
-    if (device.endsWith('\\')) {
-        device.chop(1);
+    QString devString = device;
+    if (devString.endsWith('\\')) {
+        devString.chop(1);
     }
-    int deviceID = deviceNumberFromName(device);
+    int deviceID = deviceNumberFromName(devString);
 
-    hVolume = getHandleOnVolume(device, GENERIC_WRITE);
+    hVolume = getHandleOnVolume(devString, GENERIC_WRITE);
     if (hVolume == INVALID_HANDLE_VALUE) {
         return false;
     }
@@ -84,6 +87,7 @@ bool DiskWriter_windows::writeCompressedImageToRemovableDevice(const QString &fi
     bool ok;
     // 512 == common sector size. TODO: read sector size
     char buf[512*1024];
+    isCancelled = false;
 
     if (!open(device)) {
         emit error("Couldn't open " + device);

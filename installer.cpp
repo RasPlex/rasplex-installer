@@ -397,9 +397,19 @@ void Installer::downloadImage()
         // Try to find file name in url
         QString newFileName = url.toString().section('/',-2,-2);
 
+        qDebug() << QDir::homePath() + "/" + newFileName;
         // Ask for final name
+#if defined(Q_OS_WIN)
+        // The native QFileDialog on windows doesn't select the given file!
         newFileName = QFileDialog::getSaveFileName(this, tr("Save file"),
-                                                   QDir::homePath()+"/"+newFileName);
+                                                   QDir::homePath()+"/"+newFileName,
+                                                   tr("Compressed image (*.gz)"),
+                                                   0, QFileDialog::DontUseNativeDialog);
+#else
+        newFileName = QFileDialog::getSaveFileName(this, tr("Save file"),
+                                                   QDir::homePath()+"/"+newFileName,
+                                                   tr("Compressed image (*.gz)"));
+#endif
         if (newFileName.isEmpty()) {
             reset();
             return;

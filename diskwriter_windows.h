@@ -19,7 +19,7 @@ public slots:
 private:
     QFile dev;
 
-    int open(const QString& device);
+    bool open(const QString& device);
     void close();
     void sync();
     bool isOpen();
