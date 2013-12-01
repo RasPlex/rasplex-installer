@@ -152,7 +152,7 @@ bool DiskWriter_windows::writeCompressedImageToRemovableDevice(const QString &fi
 }
 
 // Adapted from win32 DiskImager
-HANDLE DiskWriter_windows::getHandleOnFile(WCHAR *filelocation, DWORD access)
+HANDLE DiskWriter_windows::getHandleOnFile(WCHAR *filelocation, DWORD access) const
 {
     HANDLE hFile;
     hFile = CreateFile(filelocation, access, 0, NULL, (access == GENERIC_READ) ? OPEN_EXISTING:CREATE_ALWAYS, 0, NULL);
@@ -170,7 +170,7 @@ HANDLE DiskWriter_windows::getHandleOnFile(WCHAR *filelocation, DWORD access)
 }
 
 // Adapted from win32 DiskImager
-HANDLE DiskWriter_windows::getHandleOnDevice(int device, DWORD access)
+HANDLE DiskWriter_windows::getHandleOnDevice(int device, DWORD access) const
 {
     HANDLE hDevice;
     QString devicename = QString("\\\\.\\PhysicalDrive%1").arg(device);
@@ -190,7 +190,7 @@ HANDLE DiskWriter_windows::getHandleOnDevice(int device, DWORD access)
 }
 
 // Adapted from win32 DiskImager
-HANDLE DiskWriter_windows::getHandleOnVolume(const QString &volume, DWORD access)
+HANDLE DiskWriter_windows::getHandleOnVolume(const QString &volume, DWORD access) const
 {
     HANDLE hVolume;
     QString volumename = "\\\\.\\" + volume;
@@ -210,7 +210,7 @@ HANDLE DiskWriter_windows::getHandleOnVolume(const QString &volume, DWORD access
 }
 
 // Adapted from win32 DiskImager
-bool DiskWriter_windows::getLockOnVolume(HANDLE handle)
+bool DiskWriter_windows::getLockOnVolume(HANDLE handle) const
 {
     DWORD bytesreturned;
     BOOL bResult;
@@ -229,7 +229,7 @@ bool DiskWriter_windows::getLockOnVolume(HANDLE handle)
 }
 
 // Adapted from win32 DiskImager
-bool DiskWriter_windows::removeLockOnVolume(HANDLE handle)
+bool DiskWriter_windows::removeLockOnVolume(HANDLE handle) const
 {
     DWORD junk;
     BOOL bResult;
@@ -248,7 +248,7 @@ bool DiskWriter_windows::removeLockOnVolume(HANDLE handle)
 }
 
 // Adapted from win32 DiskImager
-bool DiskWriter_windows::unmountVolume(HANDLE handle)
+bool DiskWriter_windows::unmountVolume(HANDLE handle) const
 {
     DWORD junk;
     BOOL bResult;
@@ -267,7 +267,7 @@ bool DiskWriter_windows::unmountVolume(HANDLE handle)
 }
 
 // Adapted from win32 DiskImager
-bool DiskWriter_windows::isVolumeUnmounted(HANDLE handle)
+bool DiskWriter_windows::isVolumeUnmounted(HANDLE handle) const
 {
     DWORD junk;
     BOOL bResult;
@@ -298,7 +298,7 @@ bool DiskWriter_windows::writeSectorDataToHandle(HANDLE handle, char *data, unsi
 }
 
 // Adapted from win32 DiskImager
-unsigned long long DiskWriter_windows::getNumberOfSectors(HANDLE handle, unsigned long long *sectorsize)
+unsigned long long DiskWriter_windows::getNumberOfSectors(HANDLE handle, unsigned long long *sectorsize) const
 {
     DWORD junk;
     DISK_GEOMETRY_EX diskgeometry;
@@ -322,7 +322,7 @@ unsigned long long DiskWriter_windows::getNumberOfSectors(HANDLE handle, unsigne
     return (unsigned long long)diskgeometry.DiskSize.QuadPart / (unsigned long long)diskgeometry.Geometry.BytesPerSector;
 }
 
-ULONG DiskWriter_windows::deviceNumberFromName(const QString &device)
+ULONG DiskWriter_windows::deviceNumberFromName(const QString &device) const
 {
     QString volumename = "\\\\.\\" + device;
     HANDLE h = ::CreateFile(volumename.toStdWString().c_str(), 0, 0, NULL, OPEN_EXISTING, 0, NULL);
