@@ -12,6 +12,10 @@
 #include <QMessageBox>
 #include <QThread>
 
+#if QT_VERSION >= 0x050000
+#include <QStandardPaths>
+#endif
+
 #if defined(Q_OS_WIN)
 #include "diskwriter_windows.h"
 #include "deviceenumerator_windows.h"
@@ -87,7 +91,11 @@ Installer::Installer(QWidget *parent) :
     setImageFileName("");
     ui->writeButton->setEnabled(false);
 
+#if QT_VERSION >= 0x050000
+    QFile file(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "sf_data.xml");
+#else
     QFile file("sf_data.xml");
+#endif
     if (file.open(QFile::ReadOnly)) {
         QByteArray data = file.readAll();
         parseAndSetLinks(data);
@@ -182,7 +190,11 @@ void Installer::parseAndSetLinks(const QByteArray &data)
     reset();
 
     /* Save the data */
+#if QT_VERSION >= 0x050000
+    QFile file(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "sf_data.xml");
+#else
     QFile file("sf_data.xml");
+#endif
     if (file.open(QIODevice::WriteOnly | QFile::Truncate)) {
         file.write(data);
         file.close();
@@ -373,6 +385,7 @@ void Installer::updateLinks()
     state = STATE_GETTING_LINKS;
     disableControls();
 
+    ui->messageBar->setText("Getting latest releases from SourceForge.");
     QUrl url("http://sourceforge.net/api/file/index/project-id/1284489/atom");
     manager->get(url);
 }
