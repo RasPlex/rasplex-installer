@@ -15,7 +15,7 @@ public:
 
 public slots:
     void cancelWrite();
-    virtual bool writeCompressedImageToRemovableDevice(const QString &filename, const QString& device) = 0;
+    virtual bool writeCompressedImageToRemovableDevice(const QString &filename, const QString& device);
 
 signals:
     void bytesWritten(int);

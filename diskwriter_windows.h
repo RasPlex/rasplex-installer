@@ -12,9 +12,6 @@ public:
     explicit DiskWriter_windows(QObject *parent = 0);
     ~DiskWriter_windows();
 
-public slots:
-    bool writeCompressedImageToRemovableDevice(const QString &filename, const QString &device);
-
 private:
     QFile dev;
 

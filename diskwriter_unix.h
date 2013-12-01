@@ -11,10 +11,6 @@ public:
     explicit DiskWriter_unix(QObject *parent = 0);
     ~DiskWriter_unix();
 
-
-public slots:
-    bool writeCompressedImageToRemovableDevice(const QString &filename, const QString& device);
-
 private:
     QFile dev;
 
