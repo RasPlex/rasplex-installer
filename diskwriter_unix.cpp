@@ -55,6 +55,11 @@ bool DiskWriter_unix::isOpen()
     return dev.isOpen();
 }
 
+bool DiskWriter_unix::write(const char *data, qint64 size)
+{
+    return dev.write(data, size);
+}
+
 bool DiskWriter_unix::writeCompressedImageToRemovableDevice(const QString &filename, const QString &device)
 {
     int r;
@@ -86,7 +91,7 @@ bool DiskWriter_unix::writeCompressedImageToRemovableDevice(const QString &filen
     r = gzread(src, buf, sizeof(buf));
     while (r > 0 && ! isCancelled) {
         // TODO: Sanity check
-        ok = dev.write(buf, r);
+        ok = this->write(buf, r);
         if (!ok) {
             emit error("Failed to write to " + device + "!");
             gzclose(src);

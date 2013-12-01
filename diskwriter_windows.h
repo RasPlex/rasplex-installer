@@ -22,6 +22,7 @@ private:
     void close();
     void sync();
     bool isOpen();
+    bool write(const char *data, qint64 size);
 
     HANDLE hVolume;
     HANDLE hRawDisk;

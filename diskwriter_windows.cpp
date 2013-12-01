@@ -76,6 +76,23 @@ bool DiskWriter_windows::isOpen()
     return (hRawDisk != INVALID_HANDLE_VALUE && hVolume != INVALID_HANDLE_VALUE);
 }
 
+bool DiskWriter_windows::write(const char *data, qint64 size)
+{
+    DWORD byteswritten;
+    bool ok;
+    ok = WriteFile(hRawDisk, data, size, &byteswritten, NULL);
+    if (!ok) {
+        wchar_t *errormessage=NULL;
+        FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
+        QString errText = QString::fromUtf16((const ushort *)errormessage);
+        QMessageBox::critical(NULL, QObject::tr("Write Error"),
+                              QObject::tr("An error occurred when attempting to write data to handle.\n"
+                                          "Error %1: %2").arg(GetLastError()).arg(errText));
+        LocalFree(errormessage);
+    }
+    return ok;
+}
+
 bool DiskWriter_windows::writeCompressedImageToRemovableDevice(const QString &filename, const QString &device)
 {
     int r;
@@ -104,18 +121,10 @@ bool DiskWriter_windows::writeCompressedImageToRemovableDevice(const QString &fi
         return false;
     }
 
-    DWORD byteswritten;
     r = gzread(src, buf, sizeof(buf));
     while (r > 0 && ! isCancelled) {
-        ok = WriteFile(hRawDisk, buf, r, &byteswritten, NULL);
+        ok = this->write(buf, r);
         if (!ok) {
-            wchar_t *errormessage=NULL;
-            FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);
-            QString errText = QString::fromUtf16((const ushort *)errormessage);
-            QMessageBox::critical(NULL, QObject::tr("Write Error"),
-                                  QObject::tr("An error occurred when attempting to write data to handle.\n"
-                                              "Error %1: %2").arg(GetLastError()).arg(errText));
-            LocalFree(errormessage);
             emit error("Failed to write to " + device + "!");
             gzclose(src);
             this->close();

@@ -30,6 +30,7 @@ protected:
     virtual void close() = 0;
     virtual void sync() = 0;
     virtual bool isOpen() = 0;
+    virtual bool write(const char* data, qint64 size) = 0;
 };
 
 #endif // DISKWRITER_H
