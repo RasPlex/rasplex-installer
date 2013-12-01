@@ -11,26 +11,17 @@ public:
     explicit DiskWriter_unix(QObject *parent = 0);
     ~DiskWriter_unix();
 
-    int open(QString device);
-    void close();
-    bool isOpen();
-    bool writeCompressedImageToRemovableDevice(const QString &filename);
-    QStringList getRemovableDeviceNames();
-    QStringList getUserFriendlyNames(QStringList devices);
 
 public slots:
+    bool writeCompressedImageToRemovableDevice(const QString &filename, const QString& device);
     void cancelWrite();
 
 private:
     QFile dev;
 
-    bool checkIsMounted(QString device);
-    QStringList getDeviceNamesFromSysfs();
-    bool checkIfUSB(QString device);
-#if defined(Q_OS_LINUX)
-    quint64 driveSize(QString device);
-    QStringList getPartitionsInfo(QString device);
-#endif
+    bool open(const QString &device);
+    void close();
+    bool isOpen();
 };
 
 #endif // DISKWRITER_UNIX_H

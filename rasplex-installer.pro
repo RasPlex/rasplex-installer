@@ -30,13 +30,16 @@ HEADERS  += installer.h \
     zlib.h \
     zconf.h \
     confighandler.h \
-    downloadmanager.h
+    downloadmanager.h \
+    deviceenumerator.h
 
 win32 {
     SOURCES += diskwriter_windows.cpp \
-        confighandler_windows.cpp
+        confighandler_windows.cpp \
+        deviceenumerator_windows.cpp
     HEADERS += diskwriter_windows.h \
-        confighandler_windows.h
+        confighandler_windows.h \
+        deviceenumerator_windows.h
     CONFIG += rtti
     QMAKE_LFLAGS  = -static -static-libgcc
     RC_FILE = rasplex-installer.rc
@@ -44,9 +47,11 @@ win32 {
 unix {
     QMAKE_CXXFLAGS += -fPIC
     SOURCES += diskwriter_unix.cpp \
-        confighandler_unix.cpp
+        confighandler_unix.cpp \
+        deviceenumerator_unix.cpp
     HEADERS += diskwriter_unix.h \
-        confighandler_unix.h
+        confighandler_unix.h \
+        deviceenumerator_unix.h
     LIBS += -lblkid
 }
 

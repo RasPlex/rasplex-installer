@@ -9,6 +9,7 @@
 #include "downloadmanager.h"
 
 class DiskWriter;
+class DeviceEnumerator;
 class ConfigHandler;
 
 namespace Ui {
@@ -62,6 +63,7 @@ private:
     QFile imageFile;
     QString downloadUrl;
     DiskWriter *diskWriter;
+    DeviceEnumerator* devEnumerator;
     ConfigHandler *configHandler;
     bool isCancelled;
 

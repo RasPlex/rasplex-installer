@@ -13,9 +13,11 @@
 
 #if defined(Q_OS_WIN)
 #include "diskwriter_windows.h"
+#include "deviceenumerator_windows.h"
 #include "confighandler_windows.h"
 #elif defined(Q_OS_UNIX)
 #include "diskwriter_unix.h"
+#include "deviceenumerator_unix.h"
 #include "confighandler_unix.h"
 #endif
 
@@ -34,9 +36,11 @@ Installer::Installer(QWidget *parent) :
 
 #if defined(Q_OS_WIN)
     diskWriter = new DiskWriter_windows(this);
+    devEnumerator = new DeviceEnumerator_windows();
     configHandler = new ConfigHandler_windows();
 #elif defined(Q_OS_UNIX)
     diskWriter = new DiskWriter_unix(this);
+    devEnumerator = new DeviceEnumerator_unix();
     configHandler = new ConfigHandler_unix();
 #endif
 
@@ -86,6 +90,7 @@ Installer::~Installer()
 {
     delete ui;
     delete diskWriter;
+    delete devEnumerator;
     delete configHandler;
 }
 
@@ -94,8 +99,8 @@ void Installer::refreshDeviceList()
     qDebug() << "Refreshing device list";
     ui->removableDevicesComboBox->clear();
 
-    QStringList devNames = diskWriter->getRemovableDeviceNames();
-    QStringList friendlyNames = diskWriter->getUserFriendlyNames(devNames);
+    QStringList devNames = devEnumerator->getRemovableDeviceNames();
+    QStringList friendlyNames = devEnumerator->getUserFriendlyNames(devNames);
 
     for (int i = 0; i < devNames.size(); i++) {
         ui->removableDevicesComboBox->addItem(friendlyNames[i], devNames[i]);
@@ -443,14 +448,7 @@ void Installer::writeImageToDevice()
         imageFile.close();
     }
 
-    if (diskWriter->open(destination) < 0) {
-        qDebug() << "Failed to open output device";
-        reset();
-        ui->messageBar->setText("Unable to open "+destination+". Are you root?");
-        return;
-    }
-
-    if (!diskWriter->writeCompressedImageToRemovableDevice(imageFileName)) {
+    if (!diskWriter->writeCompressedImageToRemovableDevice(imageFileName, destination)) {
         qDebug() << "Writing failed";
         reset();
         return;

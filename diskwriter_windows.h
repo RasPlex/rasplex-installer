@@ -12,18 +12,16 @@ public:
     explicit DiskWriter_windows(QObject *parent = 0);
     ~DiskWriter_windows();
 
-    int open(QString device);
-    void close();
-    bool isOpen();
-    bool writeCompressedImageToRemovableDevice(const QString &filename);
-    QStringList getRemovableDeviceNames();
-    QStringList getUserFriendlyNames(QStringList devices);
-
 public slots:
     void cancelWrite();
+    bool writeCompressedImageToRemovableDevice(const QString &filename, const QString &device);
 
 private:
     QFile dev;
+
+    int open(const QString& device);
+    void close();
+    bool isOpen();
 
     HANDLE hVolume;
     HANDLE hRawDisk;

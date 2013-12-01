@@ -14,17 +14,12 @@ DiskWriter_windows::DiskWriter_windows(QObject *parent) :
 
 DiskWriter_windows::~DiskWriter_windows()
 {
-    if (dev.isOpen()) {
-        dev.close();
+    if (isOpen()) {
+        close();
     }
 }
 
-QStringList DiskWriter_windows::getUserFriendlyNames(QStringList devices) {
-    // Not implemented yet
-    return devices;
-}
-
-int DiskWriter_windows::open(QString device)
+int DiskWriter_windows::open(const QString &device)
 {
     if (device.endsWith('\\')) {
         device.chop(1);
@@ -33,26 +28,26 @@ int DiskWriter_windows::open(QString device)
 
     hVolume = getHandleOnVolume(device, GENERIC_WRITE);
     if (hVolume == INVALID_HANDLE_VALUE) {
-        return -1;
+        return false;
     }
 
     if (!getLockOnVolume(hVolume)) {
         close();
-        return -1;
+        return false;
     }
 
     if (!unmountVolume(hVolume)) {
         close();
-        return -1;
+        return false;
     }
 
     hRawDisk = getHandleOnDevice(deviceID, GENERIC_WRITE);
     if (hRawDisk == INVALID_HANDLE_VALUE) {
         close();
-        return -1;
+        return false;
     }
 
-    return 0;
+    return true;
 }
 
 void DiskWriter_windows::close()
@@ -78,16 +73,15 @@ void DiskWriter_windows::cancelWrite()
     isCancelled = true;
 }
 
-
-bool DiskWriter_windows::writeCompressedImageToRemovableDevice(const QString &filename)
+bool DiskWriter_windows::writeCompressedImageToRemovableDevice(const QString &filename, const QString &device)
 {
     int r;
     bool ok;
     // 512 == common sector size. TODO: read sector size
     char buf[512*1024];
 
-    if (!isOpen()) {
-        qDebug() << "Device not ready or whatever";
+    if (!open(device)) {
+        qDebug() << "Could not open" << device;
         return false;
     }
 
@@ -135,25 +129,6 @@ bool DiskWriter_windows::writeCompressedImageToRemovableDevice(const QString &fi
     close();
     gzclose_r(src);
     return true;
-}
-
-// Adapted from http://skilinium.com/blog/?p=134
-QStringList DiskWriter_windows::getRemovableDeviceNames()
-{
-    QStringList names;
-    WCHAR *szDriveLetters;
-    WCHAR szDriveInformation[1024];
-
-    GetLogicalDriveStrings(1024, szDriveInformation);
-
-    szDriveLetters = szDriveInformation;
-    while (*szDriveLetters != '\0') {
-        if (GetDriveType(szDriveLetters) == DRIVE_REMOVABLE) {
-            names << QString::fromWCharArray(szDriveLetters);
-        }
-        szDriveLetters = &szDriveLetters[wcslen(szDriveLetters) + 1];
-    }
-    return names;
 }
 
 // Adapted from win32 DiskImager
