@@ -12,10 +12,6 @@ public:
     explicit DiskWriter_windows(QObject *parent = 0);
     ~DiskWriter_windows();
 
-public slots:
-    void cancelWrite();
-    bool writeCompressedImageToRemovableDevice(const QString &filename, const QString &device);
-
 private:
     QFile dev;
 
@@ -23,24 +19,17 @@ private:
     void close();
     void sync();
     bool isOpen();
+    bool write(const char *data, qint64 size);
 
     HANDLE hVolume;
     HANDLE hRawDisk;
 
-    HANDLE getHandleOnFile(WCHAR *filelocation, DWORD access) const;
-    HANDLE getHandleOnDevice(int device, DWORD access) const;
+    HANDLE getHandleOnDevice(const QString &device, DWORD access) const;
     HANDLE getHandleOnVolume(const QString &volume, DWORD access) const;
-    // QString getDriveLabel(const char *drv);
     bool getLockOnVolume(HANDLE handle) const;
     bool removeLockOnVolume(HANDLE handle) const;
     bool unmountVolume(HANDLE handle) const;
-    bool isVolumeUnmounted(HANDLE handle) const;
-    //char *readSectorDataFromHandle(HANDLE handle, unsigned long long startsector, unsigned long long numsectors, unsigned long long sectorsize);
-    bool writeSectorDataToHandle(HANDLE handle, char *data, unsigned long long startsector, unsigned long long numsectors, unsigned long long sectorsize);
-    unsigned long long getNumberOfSectors(HANDLE handle, unsigned long long *sectorsize) const;
-    //unsigned long long getFileSizeInSectors(HANDLE handle, unsigned long long sectorsize);
-    //bool spaceAvailable(char *location, unsigned long long spaceneeded);
-    //bool checkDriveType(char *name, ULONG *pid);
+    bool isVolumeMounted(HANDLE handle) const;
     ULONG deviceNumberFromName(const QString &device) const;
 };
 

@@ -15,7 +15,8 @@ SOURCES += main.cpp\
     installer.cpp \
     xmlhandler.cpp \
     confighandler.cpp \
-    downloadmanager.cpp
+    downloadmanager.cpp \
+    diskwriter.cpp
 
 static { # everything below takes effect with CONFIG += static
     CONFIG += static
