@@ -17,8 +17,10 @@ public:
     bool isOpen();
     bool writeCompressedImageToRemovableDevice(const QString &filename);
     QStringList getRemovableDeviceNames();
-    void cancelWrite();
     QStringList getUserFriendlyNames(QStringList devices);
+
+public slots:
+    void cancelWrite();
 
 private:
     QFile dev;

@@ -107,6 +107,7 @@ bool DiskWriter_unix::writeCompressedImageToRemovableDevice(const QString &filen
     bool ok;
     // 512 == common sector size
     char buf[512*1024];
+    isCancelled = false;
 
     if (!dev.isOpen()) {
         qDebug() << "Device not ready or whatever";

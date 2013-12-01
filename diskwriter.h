@@ -18,8 +18,10 @@ public:
     virtual bool isOpen() = 0;
     virtual bool writeCompressedImageToRemovableDevice(const QString &filename) = 0;
     virtual QStringList getRemovableDeviceNames() = 0;
-    virtual void cancelWrite() = 0;
     virtual QStringList getUserFriendlyNames(QStringList devices) = 0;
+
+public slots:
+    virtual void cancelWrite() = 0;
 
 signals:
     void bytesWritten(int);

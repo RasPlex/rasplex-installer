@@ -48,6 +48,7 @@ Installer::Installer(QWidget *parent) :
     connect(ui->linksButton, SIGNAL(clicked()), this, SLOT(updateLinks()));
     connect(ui->downloadButton, SIGNAL(clicked()), this, SLOT(downloadImage()));
     connect(ui->cancelButton, SIGNAL(clicked()), this, SLOT(cancel()));
+    connect(ui->cancelButton, SIGNAL(clicked()), diskWriter, SLOT(cancelWrite()));
     connect(ui->loadButton, SIGNAL(clicked()), this, SLOT(getImageFileNameFromUser()));
     connect(ui->writeButton, SIGNAL(clicked()), this, SLOT(writeImageToDevice()));
     connect(diskWriter, SIGNAL(bytesWritten(int)), ui->progressBar, SLOT(setValue(int)));
@@ -105,10 +106,6 @@ void Installer::refreshDeviceList()
 
 void Installer::cancel()
 {
-
-    if (state == STATE_WRITING_IMAGE)
-        diskWriter->cancelWrite();
-
     if (!isCancelled)
         isCancelled = true;
 
