@@ -52,7 +52,7 @@ Installer::Installer(QWidget *parent) :
     connect(diskWriter, SIGNAL(bytesWritten(int)), ui->progressBar, SLOT(setValue(int)));
     connect(diskWriter, SIGNAL(syncing()), this, SLOT(writingSyncing()));
     connect(diskWriter, SIGNAL(finished()), this, SLOT(writingFinished()));
-    connect(diskWriter, SIGNAL(error(QString)), this, SLOT(showError(QString)));
+    connect(diskWriter, SIGNAL(error(QString)), this, SLOT(reset(QString)));
     diskWriterThread->start();
 
     refreshDeviceList();
@@ -188,7 +188,7 @@ void Installer::parseAndSetLinks(const QByteArray &data)
     }
 }
 
-void Installer::reset()
+void Installer::reset(const QString &message)
 {
     state = STATE_IDLE;
     bytesDownloaded = 0;
@@ -206,7 +206,7 @@ void Installer::reset()
     ui->refreshDeiceListButton->setEnabled(true);
     ui->removableDevicesComboBox->setEnabled(true);
     isCancelled = false;
-    ui->messageBar->setText("Please download and select an image to write.");
+    ui->messageBar->setText(message);
 }
 
 void Installer::disableControls()
@@ -356,11 +356,13 @@ void Installer::handlePartialData(const QByteArray &data, qlonglong total)
 
     if (bytesDownloaded == total) {
         imageFile.close();
-        qDebug() << "Download complete, verifying checksum";
+        ui->messageBar->setText("Download complete, verifying checksum...");
         // Done! Let's check checksum!
-        reset();
-        if (!isChecksumValid()) {
-            ui->messageBar->setText("Wrong md5 sum! Please re-download.");
+        if (isChecksumValid()) {
+            reset("Download complete, verifying checksum... Done!");
+        }
+        else {
+            reset("Wrong md5 sum! Please re-download.");
         }
     }
 }
@@ -408,7 +410,7 @@ void Installer::downloadImage()
         setImageFileName(newFileName);
 
         if (!imageFile.open(QFile::WriteOnly | QFile::Truncate)) {
-            reset();
+            reset("Failed to open file for writing!");
             return;
         }
 
@@ -447,20 +449,21 @@ void Installer::writeImageToDevice()
         return;
     }
 
-    ui->progressBar->setValue(0);
-    ui->progressBar->setMaximum(getUncompressedImageSize());
-    ui->messageBar->setText("Writing image to "+destination);
-
     if (destination.isNull()) {
         reset();
         return;
     }
+
+    ui->progressBar->setValue(0);
+    ui->progressBar->setMaximum(getUncompressedImageSize());
+    ui->messageBar->setText("Writing image to "+destination);
 
     // DiskWriter will re-open the image file.
     if (imageFile.isOpen()) {
         imageFile.close();
     }
 
+    state = STATE_WRITING_IMAGE;
     emit proceedToWriteImageToDevice(imageFileName, destination);
 }
 
@@ -492,7 +495,7 @@ void Installer::selectVideoOutput()
             // Shouldn't be possible!
         }
     }
-    ui->messageBar->setText("Settings changed");
+    ui->messageBar->setText("Settings changed.");
     configHandler->unMount();
 }
 
@@ -501,18 +504,11 @@ void Installer::writingFinished()
     // Make sure the config is updated
     selectVideoOutput();
 
-    reset();
-    qDebug() << "Writing done!";
+    reset("Writing done!");
 }
 
 void Installer::writingSyncing()
 {
     if (state == STATE_WRITING_IMAGE)
-        ui->messageBar->setText("Syncing file system");
-}
-
-void Installer::showError(const QString &message)
-{
-    reset();
-    ui->messageBar->setText(message);
+        ui->messageBar->setText("Syncing file system.");
 }

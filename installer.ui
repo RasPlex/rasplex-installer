@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>555</width>
-    <height>515</height>
+    <height>560</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -73,7 +73,7 @@
      <item>
       <widget class="QPushButton" name="refreshDeiceListButton">
        <property name="text">
-        <string>Refresh Device List</string>
+        <string>&amp;Refresh Device List</string>
        </property>
       </widget>
      </item>
@@ -117,7 +117,7 @@
      <item row="0" column="0">
       <widget class="QPushButton" name="loadButton">
        <property name="text">
-        <string>Select image file</string>
+        <string>Select &amp;image file</string>
        </property>
       </widget>
      </item>
@@ -250,7 +250,7 @@
    <item>
     <widget class="QPushButton" name="writeButton">
      <property name="text">
-      <string>Write SD card</string>
+      <string>&amp;Write SD card</string>
      </property>
     </widget>
    </item>
@@ -284,7 +284,7 @@
    <item>
     <widget class="QPushButton" name="cancelButton">
      <property name="text">
-      <string>Cancel</string>
+      <string>C&amp;ancel</string>
      </property>
     </widget>
    </item>

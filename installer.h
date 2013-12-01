@@ -33,7 +33,6 @@ private:
 
     void parseAndSetLinks(const QByteArray &data);
     void saveAndUpdateProgress(QNetworkReply *reply);
-    void reset();
     void disableControls();
     bool isChecksumValid();
 
@@ -84,7 +83,7 @@ private slots:
     void selectVideoOutput();
     void writingFinished();
     void writingSyncing();
-    void showError(const QString& message);
+    void reset(const QString& message = "Please download and select an image to write.");
 };
 
 #endif // INSTALLER_H
