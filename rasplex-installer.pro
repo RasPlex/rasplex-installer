@@ -56,7 +56,7 @@ unix {
 
 }
 
-linux {
+linux* {
     LIBS += -lblkid
 }
 
