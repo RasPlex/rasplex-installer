@@ -82,3 +82,11 @@ Compress static stuff with
 http://upx.sourceforge.net/#downloadupx
 
 http://qt-project.org/wiki/How_to_build_a_static_Qt_version_for_Windows_with_gcc#9a5f09cf66e692efdae493ce4c9aa64f
+
+# OS X:
+
+You can't really do a static build very easily... just use "macdeployqt"
+
+to bundle for osx, use "macdeployqt" on the target app,  and merge this with the GetRasplex.app included, generated from the main.scpt using applescript editor
+
+Merge the two together with cp -r, and then drop in the info.plst and icon file. voila!
