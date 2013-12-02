@@ -1,7 +1,6 @@
 #include "diskwriter.h"
 
 #include "zlib.h"
-#include <stdlib.h>
 
 #include <QCoreApplication>
 
@@ -15,9 +14,9 @@ bool DiskWriter::writeCompressedImageToRemovableDevice(const QString &filename, 
     int r;
     bool ok;
     unsigned int BUFFSIZE=512*1024*sizeof(char); // must malloc or it'll segfault on osx... can't handle stack properly, fucking apple
-    char* buf;
+    char* buf = NULL;
 
-    buf = (char*) malloc(BUFFSIZE);
+    buf = (char*) new char[BUFFSIZE];
     isCancelled = false;
 
     if (!open(device)) {
@@ -70,6 +69,8 @@ bool DiskWriter::writeCompressedImageToRemovableDevice(const QString &filename, 
         emit finished();
     }
     isCancelled = false;
+    if (buf)
+        delete buf;
     return true;
 }
 
