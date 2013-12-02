@@ -21,6 +21,7 @@ bool DiskWriter::writeCompressedImageToRemovableDevice(const QString &filename, 
 
     if (!open(device)) {
         emit error("Couldn't open " + device);
+        delete[] buf;
         return false;
     }
 
@@ -29,6 +30,7 @@ bool DiskWriter::writeCompressedImageToRemovableDevice(const QString &filename, 
     if (src == NULL) {
         emit error("Couldn't open " + filename);
         this->close();
+        delete[] buf;
         return false;
     }
 
@@ -36,6 +38,7 @@ bool DiskWriter::writeCompressedImageToRemovableDevice(const QString &filename, 
         emit error("Failed to set gz buffer size");
         gzclose_r(src);
         this->close();
+        delete[] buf;
         return false;
     }
 
@@ -47,6 +50,7 @@ bool DiskWriter::writeCompressedImageToRemovableDevice(const QString &filename, 
             emit error("Failed to write to " + device + "!");
             gzclose(src);
             this->close();
+            delete[] buf;
             return false;
         }
         emit bytesWritten(gztell(src));
@@ -57,6 +61,7 @@ bool DiskWriter::writeCompressedImageToRemovableDevice(const QString &filename, 
         emit error("Failed to read from " + filename + "!");
         gzclose_r(src);
         this->close();
+        delete[] buf;
         return false;
     }
 
@@ -64,13 +69,12 @@ bool DiskWriter::writeCompressedImageToRemovableDevice(const QString &filename, 
     gzclose_r(src);
     this->sync();
     this->close();
+    delete[] buf;
 
     if (!isCancelled) {
         emit finished();
     }
     isCancelled = false;
-    if (buf)
-        delete buf;
     return true;
 }
 
