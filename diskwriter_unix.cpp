@@ -1,6 +1,5 @@
 #include "diskwriter_unix.h"
 
-#include <QMessageBox>
 #include <QDebug>
 #include <unistd.h>
 
@@ -61,14 +60,6 @@ bool DiskWriter_unix::isOpen()
 
 bool DiskWriter_unix::write(const char *data, qint64 size)
 {
-
-    bool rc;
-    rc = dev.write(data, size);
-
-    if (rc)
-       QMessageBox::information(NULL, tr(" "), "Image written successfully!");
-    else
-       QMessageBox::information(NULL, tr(" "), "Image failed to write : (");
-    return rc;
+    return dev.write(data, size);
 }
 
