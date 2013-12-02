@@ -13,7 +13,7 @@ ConfigHandler_unix::~ConfigHandler_unix()
 
 bool ConfigHandler_unix::implemented()
 {
-    return true;
+    return false;
 }
 
 bool ConfigHandler_unix::mount(const QString &device)
@@ -49,8 +49,11 @@ bool ConfigHandler_unix::mount(const QString &device)
     return true;
 }
 
+
 void ConfigHandler_unix::unMount()
 {
+#if defined(Q_OS_LINUX)
     umount(qPrintable(RASPLEX_MOUNT_POINT)); // this doesn't work on os x
     qDebug() << "Unmounted" << RASPLEX_MOUNT_POINT;
+#endif
 }

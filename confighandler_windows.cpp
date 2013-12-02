@@ -4,7 +4,7 @@
 
 bool ConfigHandler_windows::implemented()
 {
-    return true;
+    return false;
 }
 
 bool ConfigHandler_windows::mount(const QString &device)

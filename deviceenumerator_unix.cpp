@@ -75,19 +75,36 @@ QStringList DeviceEnumerator_unix::getUserFriendlyNames(const QStringList &devic
         returnList.append(s);
 #else
         QProcess lsblk;
-        lsblk.start(QString("diskutil info %1s1").arg(s), QIODevice::ReadOnly);
+        lsblk.start(QString("diskutil info %1").arg(s), QIODevice::ReadOnly);
         lsblk.waitForStarted();
         lsblk.waitForFinished();
 
         QString output = lsblk.readLine();
+        QStringList iddata;
+        QString item = "";
         while (!lsblk.atEnd()) {
             output = output.trimmed(); // Odd trailing whitespace
-            if (output.contains("Volume Name:")) { // We want the volume name of this device
-                output.replace("Volume Name:              ","");
-                returnList.append(output);
+            if (output.contains("Device / Media Name:")) { // We want the volume name of this device
+                output.replace("Device / Media Name:      ","");
+                iddata.append(output);
+            }else if (output.contains("Device Identifier:")) { // We want the volume name of this device
+                output.replace("Device Identifier:        ","");
+                iddata.append(output);
+            }else if (output.contains("Total Size:")) { // We want the volume name of this device
+                 output.replace("Total Size:               ","");
+                 QStringList tokens = output.split(" ");
+                 iddata.append( "("+tokens[0]+tokens[1]+")");
             }
+
             output = lsblk.readLine();
         }
+
+        foreach(QString each,iddata)
+        {
+            item += each+": ";
+        }
+
+        returnList.append(item);
 #endif
     }
 
@@ -127,7 +144,7 @@ bool DeviceEnumerator_unix::checkIfUSB(const QString &device) const
 
     QString s = lssize.readLine();
     while (!lssize.atEnd()) {
-         if (s.contains("Protocol:") && s.contains("USB")) {
+         if (s.contains("Protocol:") && ( s.contains("USB") || s.contains("Secure Digital"))) {
              return true;
          }
          s = lssize.readLine();

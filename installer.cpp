@@ -4,6 +4,7 @@
 
 #include <QString>
 #include <QFile>
+#include <QPixmap>
 #include <QFileDialog>
 #include <iostream>
 #include <QUrl>
@@ -70,7 +71,9 @@ Installer::Installer(QWidget *parent) :
     connect(ui->cancelButton, SIGNAL(clicked()), manager, SLOT(cancelDownload()));
     connect(ui->loadButton, SIGNAL(clicked()), this, SLOT(getImageFileNameFromUser()));
     connect(ui->writeButton, SIGNAL(clicked()), this, SLOT(writeImageToDevice()));
+
     connect(ui->refreshDeiceListButton,SIGNAL(clicked()),this,SLOT(refreshDeviceList()));
+
     connect(ui->hdmiOutputButton, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
     connect(ui->sdtvOutputButton, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
     connect(ui->sdtvMode_0, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
@@ -78,7 +81,15 @@ Installer::Installer(QWidget *parent) :
     connect(ui->sdtvMode_2, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
     connect(ui->sdtvMode_3, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
 
+
     ui->videoGroupBox->setVisible(configHandler->implemented());
+
+    QImage myImage;
+    myImage.load(":/icons/getrasplex.png");
+    ui->logo->setPixmap(QPixmap::fromImage(myImage));
+    ui->logo->show();
+
+
     ui->upgradeLabel->setVisible(false);
     ui->upgradeLinks->setVisible(false);
 
@@ -214,7 +225,7 @@ void Installer::reset(const QString &message)
     ui->writeButton->setEnabled( !ui->fileNameLabel->text().isEmpty());
     ui->loadButton->setEnabled(true);
     ui->hdmiOutputButton->setEnabled(true);
-    ui->sdtvOutputButton->setEnabled(true);
+    ui->sdtvOutputButton->setEnabled(false);
     ui->cancelButton->setEnabled(true);
     ui->refreshDeiceListButton->setEnabled(true);
     ui->removableDevicesComboBox->setEnabled(true);
@@ -502,7 +513,7 @@ void Installer::selectVideoOutput()
     if (!configHandler->mount(ui->removableDevicesComboBox->itemData(idx).toString())) {
         return;
     }
-
+/*
     if (ui->hdmiOutputButton->isChecked()) {
         configHandler->changeSetting("hdmi_force_hotplug", 1);
     }
@@ -520,6 +531,7 @@ void Installer::selectVideoOutput()
             // Shouldn't be possible!
         }
     }
+    */
     ui->messageBar->setText("Settings changed.");
     configHandler->unMount();
 }

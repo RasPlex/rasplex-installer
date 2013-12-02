@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>555</width>
-    <height>560</height>
+    <height>579</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,9 +19,44 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:24pt;&quot;&gt;GetRasplex &lt;/span&gt;&lt;/p&gt;&lt;p&gt;Official graphical installer for the &lt;a href=&quot;http://rasplex.com&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;rasplex&lt;/span&gt;&lt;/a&gt; project. &lt;/p&gt;&lt;p&gt;Brought to you by Patrik and Dale.&lt;/p&gt;&lt;p&gt;Special thanks to Win32Diskimager project.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>&lt;a href=&quot;http://donate.rasplex.com&quot;&gt;Please Donate!&lt;/a&gt; to support the project and future development : )</string>
+         </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="logo">
+       <property name="text">
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
     <widget class="QLabel" name="releaseLabel">
      <property name="text">
-      <string>Releases</string>
+      <string>Step 1: Select Version</string>
      </property>
     </widget>
    </item>
@@ -48,12 +83,19 @@
    <item>
     <widget class="QLabel" name="removableDevicesLabel">
      <property name="text">
-      <string>Removable devices</string>
+      <string>Step 2: Select Device to flash</string>
      </property>
     </widget>
    </item>
    <item>
     <widget class="QComboBox" name="removableDevicesComboBox"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Step 3: Download Image or select local image file</string>
+     </property>
+    </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
@@ -138,8 +180,11 @@
    </item>
    <item>
     <widget class="QGroupBox" name="videoGroupBox">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="title">
-      <string>Video output</string>
+      <string>Video output (coming soon)</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
@@ -154,8 +199,11 @@
       </item>
       <item>
        <widget class="QRadioButton" name="sdtvOutputButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
-         <string>Use SDTV Analog Output</string>
+         <string>Use SDTV Analog Output (coming soon)</string>
         </property>
        </widget>
       </item>
@@ -245,6 +293,13 @@
        </layout>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Step 4: Flash selected device with selected image</string>
+     </property>
     </widget>
    </item>
    <item>
