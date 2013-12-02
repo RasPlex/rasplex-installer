@@ -1,0 +1,4 @@
+./configure -static -debug-and-release -opensource -confirm-license  -nomake tools -nomake examples -no-opengl -no-accessibility -dont-process -qt-sql-sqlite -qt-zlib -qt-libpng -qt-libjpeg
+
+#./configure -static -release -opensource -nomake tools -nomake examples -no-opengl -no-accessibility 
+#./configure -static -release -opensource -nomake tools -nomake examples -no-accessibility -no-openvg -no-nis -no-iconv -no-fontconfig -qt-zlib -no-icu -no-gif -no-libjpeg  -strip  -no-openssl -no-dbus -no-audio-backend -no-qml-debug  -no-c++11  -system-zlib

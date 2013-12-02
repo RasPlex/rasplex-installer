@@ -76,3 +76,7 @@ navigate to rasplex-installer directory, and run the qmake that you just built a
 
 then just run mingw32-make
 
+Compression:
+
+Compress static stuff with
+http://upx.sourceforge.net/#downloadupx
