@@ -1,6 +1,7 @@
 #include "diskwriter.h"
 
 #include "zlib.h"
+#include <stdlib.h>
 
 #include <QCoreApplication>
 
@@ -13,8 +14,10 @@ bool DiskWriter::writeCompressedImageToRemovableDevice(const QString &filename, 
 {
     int r;
     bool ok;
-    // numbers larger than this cause segfault on osx
-    char buf[8192];
+    unsigned int BUFFSIZE=512*1024*sizeof(char); // must malloc or it'll segfault on osx... can't handle stack properly, fucking apple
+    char* buf;
+
+    buf = (char*) malloc(BUFFSIZE);
     isCancelled = false;
 
     if (!open(device)) {
@@ -30,14 +33,14 @@ bool DiskWriter::writeCompressedImageToRemovableDevice(const QString &filename, 
         return false;
     }
 
-    if (gzbuffer(src, 128*1024) != 0) {
+    if (gzbuffer(src, BUFFSIZE) != 0) {
         emit error("Failed to set gz buffer size");
         gzclose_r(src);
         this->close();
         return false;
     }
 
-    r = gzread(src, buf, sizeof(buf));
+    r = gzread(src, buf, BUFFSIZE);
     while (r > 0 && ! isCancelled) {
         // TODO: Sanity check
         ok = this->write(buf, r);
@@ -48,7 +51,7 @@ bool DiskWriter::writeCompressedImageToRemovableDevice(const QString &filename, 
             return false;
         }
         emit bytesWritten(gztell(src));
-        r = gzread(src, buf, sizeof(buf));
+        r = gzread(src, buf, 8192);
     }
 
     if (r < 0) {
