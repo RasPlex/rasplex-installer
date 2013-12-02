@@ -80,3 +80,5 @@ Compression:
 
 Compress static stuff with
 http://upx.sourceforge.net/#downloadupx
+
+http://qt-project.org/wiki/How_to_build_a_static_Qt_version_for_Windows_with_gcc#9a5f09cf66e692efdae493ce4c9aa64f
