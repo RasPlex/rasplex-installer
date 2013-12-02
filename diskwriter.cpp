@@ -13,8 +13,8 @@ bool DiskWriter::writeCompressedImageToRemovableDevice(const QString &filename, 
 {
     int r;
     bool ok;
-    // 512 == common sector size
-    char buf[512*1024];
+    // numbers larger than this cause segfault on osx
+    char buf[8192];
     isCancelled = false;
 
     if (!open(device)) {
