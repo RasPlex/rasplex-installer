@@ -147,6 +147,7 @@ void Installer::cancel()
         isCancelled = true;
 
     diskWriter->cancelWrite();
+    ui->cancelButton->setEnabled(false);
     reset();
 }
 
@@ -226,7 +227,7 @@ void Installer::reset(const QString &message)
     ui->loadButton->setEnabled(true);
     ui->hdmiOutputButton->setEnabled(true);
     ui->sdtvOutputButton->setEnabled(false);
-    ui->cancelButton->setEnabled(true);
+    ui->cancelButton->setEnabled(false);
     ui->refreshDeiceListButton->setEnabled(true);
     ui->removableDevicesComboBox->setEnabled(true);
     isCancelled = false;
@@ -422,18 +423,15 @@ void Installer::downloadImage()
         QString newFileName = url.toString().section('/',-2,-2);
 
         qDebug() << QDir::homePath() + "/" + newFileName;
-        // Ask for final name
-#if defined(Q_OS_WIN)
-        // The native QFileDialog on windows doesn't select the given file!
-        newFileName = QFileDialog::getSaveFileName(this, tr("Save file"),
-                                                   QDir::homePath()+"/"+newFileName,
-                                                   tr("Compressed image (*.gz)"),
-                                                   0, QFileDialog::DontUseNativeDialog);
-#else
-        newFileName = QFileDialog::getSaveFileName(this, tr("Save file"),
-                                                   QDir::homePath()+"/"+newFileName,
-                                                   tr("Compressed image (*.gz)"));
-#endif
+
+        QString savedir = QFileDialog::getExistingDirectory(this, tr("Directory To Store Image"),
+                                                    QDir::homePath(),
+                                                    QFileDialog::ShowDirsOnly
+                                                    | QFileDialog::DontResolveSymlinks);
+
+
+        newFileName = savedir +QDir::separator ()+ newFileName;
+
         if (newFileName.isEmpty()) {
             reset();
             return;
@@ -449,7 +447,8 @@ void Installer::downloadImage()
             return;
         }
 
-        ui->messageBar->setText("Downloading image.");
+        ui->messageBar->setText("Downloading image... please be patient.");
+        ui->cancelButton->setEnabled(true);
         imageHash.reset();
     }
     manager->get(url);
@@ -457,10 +456,20 @@ void Installer::downloadImage()
 
 void Installer::getImageFileNameFromUser()
 {
+
     QString filename = QFileDialog::getOpenFileName(this, "Open rasplex image", QDir::homePath());
+
+    if (!filename.endsWith(".img.gz"))
+    {
+        QMessageBox::information(this, tr(" "), "You must select a .img.gz file.");
+        return;
+    }
+
+
     if (filename.isNull()) {
         return;
     }
+
     setImageFileName(filename);
     ui->writeButton->setEnabled(true);
     qDebug() << imageFileName;
@@ -501,6 +510,8 @@ void Installer::writeImageToDevice()
 
     state = STATE_WRITING_IMAGE;
     emit proceedToWriteImageToDevice(imageFileName, destination);
+
+
 }
 
 void Installer::selectVideoOutput()

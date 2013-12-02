@@ -90,3 +90,5 @@ You can't really do a static build very easily... just use "macdeployqt"
 to bundle for osx, use "macdeployqt" on the target app,  and merge this with the GetRasplex.app included, generated from the main.scpt using applescript editor
 
 Merge the two together with cp -r, and then drop in the info.plst and icon file. voila!
+
+Bundle with http://dmgcreator.sourceforge.net/en/ to compress down to 10MB

@@ -85,7 +85,10 @@ bool DiskWriter_windows::write(const char *data, qint64 size)
                               QObject::tr("An error occurred when attempting to write data to handle.\n"
                                           "Error %1: %2").arg(GetLastError()).arg(errText));
         LocalFree(errormessage);
-    }
+        QMessageBox::information(this, tr(" "), "Image failed to write : (");
+    }else
+       QMessageBox::information(this, tr(" "), "Image written successfully!");
+
     return ok;
 }
 
