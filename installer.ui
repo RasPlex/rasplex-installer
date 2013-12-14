@@ -47,7 +47,10 @@
      <item>
       <widget class="QLabel" name="logo">
        <property name="text">
-        <string>TextLabel</string>
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap resource="resources.qrc">:/icons/getrasplex.png</pixmap>
        </property>
       </widget>
      </item>

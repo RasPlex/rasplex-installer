@@ -4,7 +4,6 @@
 
 #include <QString>
 #include <QFile>
-#include <QPixmap>
 #include <QFileDialog>
 #include <iostream>
 #include <QUrl>
@@ -83,15 +82,9 @@ Installer::Installer(QWidget *parent) :
 
 
     ui->videoGroupBox->setVisible(configHandler->implemented());
-
-    QImage myImage;
-    myImage.load(":/icons/getrasplex.png");
-    ui->logo->setPixmap(QPixmap::fromImage(myImage));
-    ui->logo->show();
-
-
     ui->upgradeLabel->setVisible(false);
     ui->upgradeLinks->setVisible(false);
+    adjustSize();
 
     ui->hdmiOutputButton->setChecked(true);
     isCancelled = false;
