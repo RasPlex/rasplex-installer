@@ -54,6 +54,7 @@ private:
         STATE_GETTING_LINKS,
         STATE_GETTING_URL,
         STATE_DOWNLOADING_IMAGE,
+        STATE_DOWNLOADING_CHECKSUM,
         STATE_WRITING_IMAGE
     } state;
 
@@ -62,6 +63,7 @@ private:
     QCryptographicHash imageHash;
     QFile imageFile;
     QString downloadUrl;
+    QString checksum;
     DiskWriter *diskWriter;
     QThread* diskWriterThread;
     DeviceEnumerator* devEnumerator;

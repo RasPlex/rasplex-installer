@@ -1,6 +1,10 @@
 #include "installer.h"
 #include "ui_installer.h"
-#include "xmlhandler.h"
+#include "QJsonDocument.h"
+#include "QJsonObject.h"
+#include "QJsonArray.h"
+#include "QJsonValue.h"
+
 
 #include <QString>
 #include <QFile>
@@ -88,24 +92,12 @@ Installer::Installer(QWidget *parent) :
 
     ui->hdmiOutputButton->setChecked(true);
     isCancelled = false;
-    xmlHandler *handler = new xmlHandler;
-    xmlReader.setContentHandler(handler);
+
 
     setImageFileName("");
     ui->writeButton->setEnabled(false);
 
-#if QT_VERSION >= 0x050000
-    QFile file(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "sf_data.xml");
-#else
-    QFile file("sf_data.xml");
-#endif
-    if (file.open(QFile::ReadOnly)) {
-        QByteArray data = file.readAll();
-        parseAndSetLinks(data);
-    }
-    else {
-        updateLinks();
-    }
+    updateLinks();
 }
 
 Installer::~Installer()
@@ -146,21 +138,41 @@ void Installer::cancel()
 
 void Installer::parseAndSetLinks(const QByteArray &data)
 {
-    QXmlInputSource source;
-    source.setData(data);
-
-    bool ok = xmlReader.parse(source);
-    if (!ok) {
-        std::cout << "Parsing failed." << std::endl;
-    }
-
-    xmlHandler *handler = dynamic_cast<xmlHandler*>(xmlReader.contentHandler());
-    if (handler == NULL) {
-        return;
-    }
+    QString baseurl = "https://github.com/RasPlex/RasPlex/releases/download";
+    QString myString(data);
+    qDebug()<< myString ;
+    QJsonDocument jsonData = QJsonDocument::fromJson(myString.toUtf8());
+    QJsonArray releases = jsonData.array();
 
     ui->releaseLinks->clear();
     ui->upgradeLinks->clear();
+
+    foreach (const QJsonValue & value, releases) {
+
+            QJsonObject json = value.toObject();
+            QString releaseName = json["name"].toString();
+            QJsonArray assets = json["assets"].toArray();
+
+            foreach(const QJsonValue & assetValue, assets)
+            {
+                QJsonObject asset = assetValue.toObject();
+                QString assetName = asset["name"].toString();
+                qDebug() << assetName;
+
+                if (assetName.endsWith("img.gz"))
+                {
+                    QString url = baseurl + "/" + releaseName + "/" + assetName;
+                    ui->releaseLinks->insertItem(0, json["name"].toString(),url);
+                    qDebug() << url;
+                }
+
+            }
+
+    }
+
+
+    /*
+
 
     // Add release links
     foreach (xmlHandler::DownloadInfo info, handler->releases) {
@@ -178,32 +190,14 @@ void Installer::parseAndSetLinks(const QByteArray &data)
     // Add current, bleeding, and experimental
     ui->releaseLinks->insertItem(0, "experimental", handler->experimental.url);
     ui->releaseLinks->insertItem(0, "bleeding", handler->bleeding.url);
-    ui->releaseLinks->insertItem(0, "current", handler->current.url);
+
     ui->releaseLinks->setCurrentIndex(0);
 
-    // Add upgrade links
-    foreach (xmlHandler::DownloadInfo info, handler->autoupdates) {
-        QUrl link = info.url;
-        QString version = link.toString();
-        // Remove full url and ".tar.bz2"
-        int idx = version.lastIndexOf('-');
-        version.remove(0, idx+1);
-        version.chop(17);
-        ui->upgradeLinks->addItem(version, link);
-    }
 
+    ui->upgradeLinks->addItem(version, link);
+*/
     reset();
 
-    /* Save the data */
-#if QT_VERSION >= 0x050000
-    QFile file(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation) + "sf_data.xml");
-#else
-    QFile file("sf_data.xml");
-#endif
-    if (file.open(QIODevice::WriteOnly | QFile::Truncate)) {
-        file.write(data);
-        file.close();
-    }
 }
 
 void Installer::reset(const QString &message)
@@ -225,6 +219,7 @@ void Installer::reset(const QString &message)
     ui->removableDevicesComboBox->setEnabled(true);
     isCancelled = false;
     ui->messageBar->setText(message);
+
 }
 
 void Installer::disableControls()
@@ -254,23 +249,13 @@ bool Installer::isChecksumValid()
         c.addData(imageFile.read(4096));
     }
     downloadSum = c.result().toHex();
+
     imageFile.close();
 
-    xmlHandler *handler = dynamic_cast<xmlHandler*>(xmlReader.contentHandler());
-    if (handler == NULL) {
-        return false;
-    }
 
-    // Find our reference sum
-    QUrl selectedUrl = ui->releaseLinks->itemData(ui->releaseLinks->currentIndex()).toUrl();
-    foreach (xmlHandler::DownloadInfo info, handler->releases) {
-        if (info.url == selectedUrl) {
-            referenceSum = info.md5sum;
-            break;
-        }
-    }
-
-    if (referenceSum.isEmpty() || downloadSum != referenceSum) {
+    if (checksum.isEmpty() || downloadSum != checksum.toUtf8()) {
+        qDebug() << "checksum:" << checksum.toUtf8();
+        qDebug() << "downloadsum:" << downloadSum;
         return false;
     }
 
@@ -342,7 +327,20 @@ void Installer::handleFinishedDownload(const QByteArray &data)
         break;
     }
 
+    case STATE_DOWNLOADING_CHECKSUM:
+        // Done! Let's check checksum!
+        checksum.append(data);
+        checksum = checksum.trimmed();
+        if (isChecksumValid()) {
+            reset("Download complete, verifying checksum... Done!");
+        }
+        else {
+            reset("Wrong md5 sum! Please re-download.");
+        }
+        break;
+
     case STATE_DOWNLOADING_IMAGE:
+        state = STATE_DOWNLOADING_CHECKSUM;
         break;
 
     default:
@@ -356,6 +354,11 @@ void Installer::handlePartialData(const QByteArray &data, qlonglong total)
         downloadUrl.append(data);
         return;
     }
+    if (state == STATE_DOWNLOADING_CHECKSUM) {
+        checksum.append(data);
+        return;
+    }
+
 
     if (state != STATE_DOWNLOADING_IMAGE) {
         /* What to do? */
@@ -375,13 +378,11 @@ void Installer::handlePartialData(const QByteArray &data, qlonglong total)
     if (bytesDownloaded == total) {
         imageFile.close();
         ui->messageBar->setText("Download complete, verifying checksum...");
-        // Done! Let's check checksum!
-        if (isChecksumValid()) {
-            reset("Download complete, verifying checksum... Done!");
-        }
-        else {
-            reset("Wrong md5 sum! Please re-download.");
-        }
+
+        QString url = ui->releaseLinks->itemData(ui->releaseLinks->currentIndex()).toString()+".checksum";
+        QUrl checksumUrl(url);
+        qDebug() << url;
+        manager->get(checksumUrl);
     }
 }
 
@@ -390,8 +391,8 @@ void Installer::updateLinks()
     state = STATE_GETTING_LINKS;
     disableControls();
 
-    ui->messageBar->setText("Getting latest releases from SourceForge.");
-    QUrl url("http://sourceforge.net/api/file/index/project-id/1284489/atom");
+    ui->messageBar->setText("Getting latest releases from GitHub.");
+    QUrl url("https://api.github.com/repos/Rasplex/Rasplex/releases");
     manager->get(url);
 }
 

@@ -13,10 +13,21 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
     installer.cpp \
-    xmlhandler.cpp \
     confighandler.cpp \
     downloadmanager.cpp \
     diskwriter.cpp
+
+
+
+SOURCES += QJsonArray.cpp      \
+           QJsonDocument.cpp   \
+           QJsonObject.cpp     \
+           QJsonParseError.cpp \
+           QJsonValue.cpp      \
+           QJsonValueRef.cpp   \
+           QJsonParser.cpp     \
+
+
 
 static { # everything below takes effect with CONFIG += static
     CONFIG += static
@@ -26,13 +37,24 @@ static { # everything below takes effect with CONFIG += static
 }
 
 HEADERS  += installer.h \
-    xmlhandler.h \
     diskwriter.h \
     zlib.h \
     zconf.h \
     confighandler.h \
     downloadmanager.h \
     deviceenumerator.h
+
+INCLUDEPATH += qjson4
+
+HEADERS += QJsonArray.h        \
+           QJsonDocument.h     \
+           QJsonObject.h       \
+           QJsonParseError.h   \
+           QJsonValue.h        \
+           QJsonValueRef.h     \
+           QJsonParser.h       \
+           QJsonRoot.h         \
+
 
 win32 {
     SOURCES += diskwriter_windows.cpp \
