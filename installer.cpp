@@ -385,7 +385,7 @@ void Installer::downloadImage()
                                                     | QFileDialog::DontResolveSymlinks);
 
 
-        newFileName = savedir +QDir::separator ()+ newFileName;
+        newFileName = savedir +QDir::separator ()+ newFileName + ".img.gz";
 
         if (newFileName.isEmpty()) {
             reset();
