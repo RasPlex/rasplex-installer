@@ -1,10 +1,17 @@
 #include "installer.h"
 #include "ui_installer.h"
+
+#if QT_VERSION <= 0x050000
 #include "QJsonDocument.h"
 #include "QJsonObject.h"
 #include "QJsonArray.h"
 #include "QJsonValue.h"
-
+#else
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonValue>
+#endif
 
 #include <QString>
 #include <QFile>

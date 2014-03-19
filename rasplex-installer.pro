@@ -36,16 +36,6 @@ HEADERS  += installer.h \
 
 INCLUDEPATH += qjson4
 
-HEADERS += QJsonArray.h        \
-           QJsonDocument.h     \
-           QJsonObject.h       \
-           QJsonParseError.h   \
-           QJsonValue.h        \
-           QJsonValueRef.h     \
-           QJsonParser.h       \
-           QJsonRoot.h         \
-
-
 win32 {
     SOURCES += diskwriter_windows.cpp \
         confighandler_windows.cpp \
