@@ -74,7 +74,7 @@ linux* {
 
 FORMS    += installer.ui
 
-LIBS += -L3rd-party -lz
+LIBS += -L$$PWD/3rd-party -lz
 
 OTHER_FILES +=
 
