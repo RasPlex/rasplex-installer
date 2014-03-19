@@ -92,3 +92,9 @@ to bundle for osx, use "macdeployqt" on the target app,  and merge this with the
 Merge the two together with cp -r, and then drop in the info.plst and icon file. voila!
 
 Bundle with http://dmgcreator.sourceforge.net/en/ to compress down to 10MB
+
+
+# GNU/Linux:
+(Qt-5.2.1)
+$ ./configure -static -release -opensource -nomake tools -nomake examples -no-accessibility -no-openvg -no-nis -no-iconv -no-directfb -no-icu -no-gif -no-libjpeg -strip -no-dbus -no-audio-backend -no-qml-debug -no-c++11 -system-zlib -no-linuxfb -no-eglfs -no-sql-mysql -no-sql-odbc -system-sqlite -no-sql-sqlite2 -no-cups -no-glib -no-qml-debug -no-javascript-jit -no-mtdev
+
