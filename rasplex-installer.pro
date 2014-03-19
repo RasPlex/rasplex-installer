@@ -17,17 +17,7 @@ SOURCES += main.cpp\
     downloadmanager.cpp \
     diskwriter.cpp
 
-
-
-SOURCES += QJsonArray.cpp      \
-           QJsonDocument.cpp   \
-           QJsonObject.cpp     \
-           QJsonParseError.cpp \
-           QJsonValue.cpp      \
-           QJsonValueRef.cpp   \
-           QJsonParser.cpp     \
-
-
+include(3rd-party/3rd-party.pri)
 
 static { # everything below takes effect with CONFIG += static
     CONFIG += static
