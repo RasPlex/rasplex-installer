@@ -152,12 +152,13 @@ void Installer::parseAndSetLinks(const QByteArray &data)
             QJsonObject json = value.toObject();
             QString releaseName = json["name"].toString();
             QJsonArray assets = json["assets"].toArray();
+            QString body = json["body"].toString();
 
             foreach(const QJsonValue & assetValue, assets)
             {
                 QJsonObject asset = assetValue.toObject();
                 QString assetName = asset["name"].toString();
-                qDebug() << assetName;
+                //qDebug() << assetName;
 
                 if (assetName.endsWith("img.gz"))
                 {
@@ -327,20 +328,8 @@ void Installer::handleFinishedDownload(const QByteArray &data)
         break;
     }
 
-    case STATE_DOWNLOADING_CHECKSUM:
-        // Done! Let's check checksum!
-        checksum.append(data);
-        checksum = checksum.trimmed();
-        if (isChecksumValid()) {
-            reset("Download complete, verifying checksum... Done!");
-        }
-        else {
-            reset("Wrong md5 sum! Please re-download.");
-        }
-        break;
 
     case STATE_DOWNLOADING_IMAGE:
-        state = STATE_DOWNLOADING_CHECKSUM;
         break;
 
     default:
@@ -352,10 +341,6 @@ void Installer::handlePartialData(const QByteArray &data, qlonglong total)
 {
     if (state == STATE_GETTING_URL) {
         downloadUrl.append(data);
-        return;
-    }
-    if (state == STATE_DOWNLOADING_CHECKSUM) {
-        checksum.append(data);
         return;
     }
 
@@ -379,10 +364,15 @@ void Installer::handlePartialData(const QByteArray &data, qlonglong total)
         imageFile.close();
         ui->messageBar->setText("Download complete, verifying checksum...");
 
-        QString url = ui->releaseLinks->itemData(ui->releaseLinks->currentIndex()).toString()+".checksum";
-        QUrl checksumUrl(url);
-        qDebug() << url;
-        manager->get(checksumUrl);
+
+
+
+        if (isChecksumValid()) {
+            reset("Download complete, verifying checksum... Done!");
+        }
+        else {
+            reset("Wrong md5 sum! Please re-download.");
+        }
     }
 }
 

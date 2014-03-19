@@ -176,7 +176,7 @@ Go to the source directory where you installed qt, and enter "qtbase". Run the f
 
 ```bash
 
-./configure -static -debug-and-release -opensource -confirm-license  -nomake tools -nomake examples -no-opengl -no-accessibility -dont-process -qt-sql-sqlite -qt-zlib -qt-libpng -qt-libjpeg -no-icu  -qt-pcre -qt-xcb
+./configure -static -debug-and-release -opensource -confirm-license  -nomake tools -nomake examples -no-opengl -no-accessibility -process -qt-sql-sqlite -qt-zlib -qt-libpng -qt-libjpeg -no-icu  -qt-pcre -qt-xcb  -no-egl -no-cups  -no-linuxfb   -no-dbus
 make -j `nproc`
 ```
 
