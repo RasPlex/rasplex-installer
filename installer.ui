@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>555</width>
-    <height>579</height>
+    <height>717</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -297,6 +297,9 @@
       </item>
      </layout>
     </widget>
+   </item>
+   <item>
+    <widget class="QStackedWidget" name="releaseNotes"/>
    </item>
    <item>
     <widget class="QLabel" name="label_2">

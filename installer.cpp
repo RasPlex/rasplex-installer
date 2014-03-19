@@ -15,6 +15,7 @@
 #include <QNetworkRequest>
 #include <QMessageBox>
 #include <QThread>
+#include <QPlainTextEdit>
 
 #if QT_VERSION >= 0x050000
 #include <QStandardPaths>
@@ -84,6 +85,7 @@ Installer::Installer(QWidget *parent) :
     connect(ui->sdtvMode_2, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
     connect(ui->sdtvMode_3, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
 
+    connect(ui->releaseLinks, SIGNAL(currentIndexChanged(int)), ui->releaseNotes, SLOT(setCurrentIndex(int)));
 
     ui->videoGroupBox->setVisible(configHandler->implemented());
     ui->upgradeLabel->setVisible(false);
@@ -147,6 +149,13 @@ void Installer::parseAndSetLinks(const QByteArray &data)
     ui->releaseLinks->clear();
     ui->upgradeLinks->clear();
 
+    /* Clear all release notes */
+    while (ui->releaseNotes->count()) {
+        QWidget* widget = ui->releaseNotes->widget(0);
+        ui->releaseNotes->removeWidget(widget);
+        widget->deleteLater();
+    }
+
     foreach (const QJsonValue & value, releases) {
 
             QJsonObject json = value.toObject();
@@ -157,10 +166,13 @@ void Installer::parseAndSetLinks(const QByteArray &data)
             QString localchecksum = json["install_sum"].toString();
 
             checksumMap[releaseName] = localchecksum;
-            ui->releaseLinks->insertItem(0, releaseName ,url);
-            qDebug() << url;
 
-            qDebug() << notes;
+            ui->releaseLinks->insertItem(0, releaseName ,url);
+
+            /* Add release note */
+            QPlainTextEdit* releaseNotesEdit = new QPlainTextEdit(notes);
+            releaseNotesEdit->setReadOnly(true);
+            ui->releaseNotes->insertWidget(0, releaseNotesEdit);
     }
 
 
