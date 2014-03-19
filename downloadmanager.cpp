@@ -77,6 +77,9 @@ void DownloadManager::handleGetFinished(QNetworkReply *reply)
 
         default:
             qDebug() << "Unhandled reply:" << responseCode;
+            foreach (const QByteArray& header, reply->rawHeaderList()) {
+                qDebug() << header << reply->rawHeader(header);
+            }
             break;
         }
     }
