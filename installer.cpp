@@ -138,7 +138,7 @@ void Installer::cancel()
 
 void Installer::parseAndSetLinks(const QByteArray &data)
 {
-    QString baseurl = "https://github.com/RasPlex/RasPlex/releases/download";
+
     QString myString(data);
     qDebug()<< myString ;
     QJsonDocument jsonData = QJsonDocument::fromJson(myString.toUtf8());
@@ -150,53 +150,20 @@ void Installer::parseAndSetLinks(const QByteArray &data)
     foreach (const QJsonValue & value, releases) {
 
             QJsonObject json = value.toObject();
-            QString releaseName = json["name"].toString();
-            QJsonArray assets = json["assets"].toArray();
-            QString body = json["body"].toString();
+            QString releaseName = json["version"].toString();
+            QString url = json["install_url"].toString();
+            QString notes = json["notes"].toString();
+            QString foo = json["baoesae"].toString();
+            QString localchecksum = json["install_sum"].toString();
 
-            foreach(const QJsonValue & assetValue, assets)
-            {
-                QJsonObject asset = assetValue.toObject();
-                QString assetName = asset["name"].toString();
-                //qDebug() << assetName;
+            checksumMap[releaseName] = localchecksum;
+            ui->releaseLinks->insertItem(0, releaseName ,url);
+            qDebug() << url;
 
-                if (assetName.endsWith("img.gz"))
-                {
-                    QString url = baseurl + "/" + releaseName + "/" + assetName;
-                    ui->releaseLinks->insertItem(0, json["name"].toString(),url);
-                    qDebug() << url;
-                }
-
-            }
-
+            qDebug() << notes;
     }
 
 
-    /*
-
-
-    // Add release links
-    foreach (xmlHandler::DownloadInfo info, handler->releases) {
-        QUrl link = info.url;
-        QString version = link.toString();
-
-        // Remove full url and ".img.gz"
-        int idx = version.lastIndexOf('-');
-        version.remove(0, idx+1);
-        version.chop(16);
-
-        ui->releaseLinks->insertItem (0, version, link);
-    }
-
-    // Add current, bleeding, and experimental
-    ui->releaseLinks->insertItem(0, "experimental", handler->experimental.url);
-    ui->releaseLinks->insertItem(0, "bleeding", handler->bleeding.url);
-
-    ui->releaseLinks->setCurrentIndex(0);
-
-
-    ui->upgradeLinks->addItem(version, link);
-*/
     reset();
 
 }
@@ -253,6 +220,10 @@ bool Installer::isChecksumValid()
 
     imageFile.close();
 
+    qDebug() << selectedVersion;
+
+    checksum = checksumMap[selectedVersion];
+    qDebug() << checksum;
 
     if (checksum.isEmpty() || downloadSum != checksum.toUtf8()) {
         qDebug() << "checksum:" << checksum.toUtf8();
@@ -382,7 +353,7 @@ void Installer::updateLinks()
     disableControls();
 
     ui->messageBar->setText("Getting latest releases from GitHub.");
-    QUrl url("https://api.github.com/repos/Rasplex/Rasplex/releases");
+    QUrl url("http://updater.rasplex.com/install");
     manager->get(url);
 }
 
@@ -390,7 +361,7 @@ void Installer::downloadImage()
 {
     state = STATE_DOWNLOADING_IMAGE;
     disableControls();
-    QString selectedVersion = ui->releaseLinks->itemText(ui->releaseLinks->currentIndex());
+    selectedVersion = ui->releaseLinks->itemText(ui->releaseLinks->currentIndex());
     QUrl url = ui->releaseLinks->itemData(ui->releaseLinks->currentIndex()).toUrl();
 
     qDebug() << "Downloading" << url;

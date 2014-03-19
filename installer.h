@@ -63,6 +63,8 @@ private:
     QFile imageFile;
     QString downloadUrl;
     QString checksum;
+    QString selectedVersion;
+    QMap<QString, QString> checksumMap;
     DiskWriter *diskWriter;
     QThread* diskWriterThread;
     DeviceEnumerator* devEnumerator;
