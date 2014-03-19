@@ -28,6 +28,9 @@ QNetworkReply* DownloadManager::get(const QUrl &url)
     qDebug() << "Getting" << url;
 
     latestReply = manager->get(req);
+#if defined(Q_OS_WIN)
+    latestReply->ignoreSslErrors();
+#endif
     return latestReply;
 }
 
