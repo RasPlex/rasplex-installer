@@ -1,17 +1,10 @@
 #include "installer.h"
 #include "ui_installer.h"
 
-#if QT_VERSION <= 0x050000
-#include "QJsonDocument.h"
-#include "QJsonObject.h"
-#include "QJsonArray.h"
-#include "QJsonValue.h"
-#else
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonValue>
-#endif
 
 #include <QString>
 #include <QFile>
@@ -371,8 +364,16 @@ void Installer::updateLinks()
     state = STATE_GETTING_LINKS;
     disableControls();
 
+#if defined( Q_OS_WIN)
+    QString PLATFORM = "windows";
+#elif defined(Q_OS_LINUX)
+    QString PLATFORM = "linux";
+#elif defined(Q_OS_MAC)
+    QString PLATFORM = "osx";
+#endif
+
     ui->messageBar->setText("Getting latest releases from GitHub.");
-    QUrl url("http://updater.rasplex.com/install");
+    QUrl url("http://updater.rasplex.com/install?platform="+PLATFORM);
     manager->get(url);
 }
 

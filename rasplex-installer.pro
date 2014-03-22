@@ -17,7 +17,6 @@ SOURCES += main.cpp\
     downloadmanager.cpp \
     diskwriter.cpp
 
-include(3rd-party/3rd-party.pri)
 
 static { # everything below takes effect with CONFIG += static
     CONFIG += static
@@ -34,7 +33,6 @@ HEADERS  += installer.h \
     downloadmanager.h \
     deviceenumerator.h
 
-INCLUDEPATH += qjson4
 
 win32 {
     SOURCES += diskwriter_windows.cpp \
