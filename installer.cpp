@@ -395,10 +395,11 @@ void Installer::downloadImage()
 
         newFileName = savedir +QDir::separator ()+ newFileName + ".img.gz";
 
-        if (newFileName.isEmpty()) {
+        if (savedir.isEmpty() || newFileName.isEmpty()) {
             reset();
             return;
         }
+        qDebug() << "Downloading to" << newFileName;
 
         if (imageFile.isOpen())
             imageFile.close();
