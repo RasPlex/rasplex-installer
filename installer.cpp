@@ -1,11 +1,6 @@
 #include "installer.h"
 #include "ui_installer.h"
 
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QJsonValue>
-
 #include <QString>
 #include <QFile>
 #include <QFileDialog>
@@ -17,10 +12,6 @@
 #include <QThread>
 #include <QPlainTextEdit>
 
-#if QT_VERSION >= 0x050000
-#include <QStandardPaths>
-#endif
-
 #if defined(Q_OS_WIN)
 #include "diskwriter_windows.h"
 #include "deviceenumerator_windows.h"
@@ -30,6 +21,7 @@
 #include "deviceenumerator_unix.h"
 #include "confighandler_unix.h"
 #endif
+#include "linkparser.h"
 
 // TODO: Get chunk size from server, or whatever
 #define CHUNKSIZE 1*1024*1024
@@ -140,11 +132,8 @@ void Installer::cancel()
 
 void Installer::parseAndSetLinks(const QByteArray &data)
 {
-
-    QString myString(data);
-    qDebug()<< myString ;
-    QJsonDocument jsonData = QJsonDocument::fromJson(myString.toUtf8());
-    QJsonArray releases = jsonData.array();
+    LinkParser linkParser(data);
+    qDebug()<< data;
 
     ui->releaseLinks->clear();
     ui->upgradeLinks->clear();
@@ -156,25 +145,24 @@ void Installer::parseAndSetLinks(const QByteArray &data)
         widget->deleteLater();
     }
 
-    foreach (const QJsonValue & value, releases) {
+    QList<ReleaseData> releases = linkParser.releases();
+    for (QList<ReleaseData>::const_iterator it = releases.constBegin();
+         it != releases.constEnd(); it++) {
+        QString releaseName = (*it)["version"];
+        QString url = (*it)["install_url"];
+        QString notes = (*it)["notes"];
+        QString foo = (*it)["baoesae"];
+        QString localchecksum = (*it)["install_sum"];
 
-            QJsonObject json = value.toObject();
-            QString releaseName = json["version"].toString();
-            QString url = json["install_url"].toString();
-            QString notes = json["notes"].toString();
-            QString foo = json["baoesae"].toString();
-            QString localchecksum = json["install_sum"].toString();
+        checksumMap[releaseName] = localchecksum;
 
-            checksumMap[releaseName] = localchecksum;
+        ui->releaseLinks->insertItem(0, releaseName ,url);
 
-            ui->releaseLinks->insertItem(0, releaseName ,url);
-
-            /* Add release note */
-            QPlainTextEdit* releaseNotesEdit = new QPlainTextEdit(notes);
-            releaseNotesEdit->setReadOnly(true);
-            ui->releaseNotes->insertWidget(0, releaseNotesEdit);
+        /* Add release note */
+        QPlainTextEdit* releaseNotesEdit = new QPlainTextEdit(notes);
+        releaseNotesEdit->setReadOnly(true);
+        ui->releaseNotes->insertWidget(0, releaseNotesEdit);
     }
-
 
     reset();
 

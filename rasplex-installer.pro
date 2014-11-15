@@ -15,7 +15,8 @@ SOURCES += main.cpp\
     installer.cpp \
     confighandler.cpp \
     downloadmanager.cpp \
-    diskwriter.cpp
+    diskwriter.cpp \
+    linkparser.cpp
 
 
 static { # everything below takes effect with CONFIG += static
@@ -31,7 +32,8 @@ HEADERS  += installer.h \
     zconf.h \
     confighandler.h \
     downloadmanager.h \
-    deviceenumerator.h
+    deviceenumerator.h \
+    linkparser.h
 
 
 win32 {
@@ -63,6 +65,8 @@ linux* {
 FORMS    += installer.ui
 
 LIBS += -L$$PWD/3rd-party -lz
+
+lessThan(QT_MAJOR_VERSION, 5): LIBS += -lqjson
 
 OTHER_FILES +=
 
