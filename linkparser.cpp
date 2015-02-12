@@ -33,6 +33,31 @@ LinkParser::LinkParser(const QByteArray &data)
     }
 }
 
+DeviceParser::DeviceParser(const QByteArray &data)
+{
+    QVariantList deviceList;
+    bool ok;
+
+    #if QT_VERSION >= 0x050000
+    deviceList = QJsonDocument::fromJson(data).toVariant().toList();
+    #else
+    QJson::Parser parser;
+
+    deviceList = parser.parse(data, &ok).toList();
+    Q_ASSERT(ok);
+    #endif
+
+    foreach (const QVariant &device, deviceList) {
+        ok = device.canConvert<QVariantMap>();
+        Q_ASSERT(ok);
+        deviceData.append(device.toMap());
+    }
+}
+
+QList<DeviceData> DeviceParser::devices() const
+{
+    return deviceData;
+}
 
 QList<ReleaseData> LinkParser::releases() const
 {

@@ -51,6 +51,7 @@ private:
     };
     enum {
         STATE_IDLE,
+        STATE_GET_SUPPORTED_DEVICES,
         STATE_GETTING_LINKS,
         STATE_GETTING_URL,
         STATE_DOWNLOADING_IMAGE,
@@ -70,6 +71,7 @@ private:
     DeviceEnumerator* devEnumerator;
     ConfigHandler *configHandler;
     bool isCancelled;
+    static const QString m_serverUrl;
 
 signals:
     void proceedToWriteImageToDevice(const QString& image, const QString& device);
@@ -78,7 +80,9 @@ private slots:
     void handleFinishedDownload(const QByteArray& data);
     void handlePartialData(const QByteArray& data, qlonglong total);
     void cancel();
-    void updateLinks();
+    void updateDevices();
+    void getSupportedDevices(const QByteArray &data);
+    void getDeviceReleases(int index);
     void refreshDeviceList();
     void downloadImage();
     void getImageFileNameFromUser();

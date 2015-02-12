@@ -23,6 +23,9 @@
 #endif
 #include "linkparser.h"
 
+const QString Installer::m_serverUrl = "updater.rasplex.com";
+//const QString Installer::m_serverUrl = "localhost:8080"; // for testing
+
 // TODO: Get chunk size from server, or whatever
 #define CHUNKSIZE 1*1024*1024
 
@@ -61,7 +64,7 @@ Installer::Installer(QWidget *parent) :
     connect(manager, SIGNAL(downloadComplete(QByteArray)), this, SLOT(handleFinishedDownload(QByteArray)));
     connect(manager, SIGNAL(partialData(QByteArray,qlonglong)),
             this, SLOT(handlePartialData(QByteArray,qlonglong)));
-    connect(ui->linksButton, SIGNAL(clicked()), this, SLOT(updateLinks()));
+    connect(ui->linksButton, SIGNAL(clicked()), this, SLOT(updateDevices()));
     connect(ui->downloadButton, SIGNAL(clicked()), this, SLOT(downloadImage()));
     connect(ui->cancelButton, SIGNAL(clicked()), this, SLOT(cancel()));
     connect(ui->cancelButton, SIGNAL(clicked()), manager, SLOT(cancelDownload()));
@@ -78,10 +81,12 @@ Installer::Installer(QWidget *parent) :
     connect(ui->sdtvMode_3, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
 
     connect(ui->releaseLinks, SIGNAL(currentIndexChanged(int)), ui->releaseNotes, SLOT(setCurrentIndex(int)));
+    connect(ui->deviceSelectBox, SIGNAL(currentIndexChanged(int)), this, SLOT(getDeviceReleases(int)));
+
+
+
 
     ui->videoGroupBox->setVisible(configHandler->implemented());
-    ui->upgradeLabel->setVisible(false);
-    ui->upgradeLinks->setVisible(false);
     adjustSize();
 
     ui->hdmiOutputButton->setChecked(true);
@@ -91,7 +96,7 @@ Installer::Installer(QWidget *parent) :
     setImageFileName("");
     ui->writeButton->setEnabled(false);
 
-    updateLinks();
+    updateDevices();
 }
 
 Installer::~Installer()
@@ -130,13 +135,30 @@ void Installer::cancel()
     reset();
 }
 
+void Installer::getSupportedDevices(const QByteArray &data)
+{
+    DeviceParser deviceParser(data);
+
+    ui->deviceSelectBox->clear();
+
+    QList<DeviceData> devices = deviceParser.devices();
+    for (QList<DeviceData>::const_iterator it = devices.constBegin();
+         it != devices.constEnd(); it++) {
+        QString deviceName = (*it)["name"];
+        QString deviceId = (*it)["id"];
+        ui->deviceSelectBox->insertItem(0, deviceName ,deviceId);
+    }
+
+    reset();
+    getDeviceReleases(ui->deviceSelectBox->currentIndex());
+}
+
 void Installer::parseAndSetLinks(const QByteArray &data)
 {
     LinkParser linkParser(data);
     qDebug()<< data;
 
     ui->releaseLinks->clear();
-    ui->upgradeLinks->clear();
 
     /* Clear all release notes */
     while (ui->releaseNotes->count()) {
@@ -151,7 +173,6 @@ void Installer::parseAndSetLinks(const QByteArray &data)
         QString releaseName = (*it)["version"];
         QString url = (*it)["install_url"];
         QString notes = (*it)["notes"];
-        QString foo = (*it)["baoesae"];
         QString localchecksum = (*it)["install_sum"];
 
         checksumMap[releaseName] = localchecksum;
@@ -283,6 +304,10 @@ void Installer::setImageFileName(QString filename)
 void Installer::handleFinishedDownload(const QByteArray &data)
 {
     switch (state) {
+    case STATE_GET_SUPPORTED_DEVICES:
+        getSupportedDevices(data);
+        break;
+
     case STATE_GETTING_LINKS:
         parseAndSetLinks(data);
         break;
@@ -347,10 +372,21 @@ void Installer::handlePartialData(const QByteArray &data, qlonglong total)
     }
 }
 
-void Installer::updateLinks()
+void Installer::updateDevices()
+{
+    state = STATE_GET_SUPPORTED_DEVICES;
+    disableControls();
+
+    ui->messageBar->setText("Getting supported RasPlex devices");
+    QUrl url("http://"+m_serverUrl+"/devices");
+    manager->get(url);
+}
+
+void Installer::getDeviceReleases(int index)
 {
     state = STATE_GETTING_LINKS;
     disableControls();
+
 
 #if defined( Q_OS_WIN)
     QString PLATFORM = "windows";
@@ -360,8 +396,10 @@ void Installer::updateLinks()
     QString PLATFORM = "osx";
 #endif
 
-    ui->messageBar->setText("Getting latest releases from GitHub.");
-    QUrl url("http://updater.rasplex.com/install?platform="+PLATFORM);
+    QString deviceName = ui->deviceSelectBox->itemText(index);
+    QString deviceId = ui->deviceSelectBox->itemData(index).toString();
+    ui->messageBar->setText("Getting releases for "+deviceName);
+    QUrl url("http://"+m_serverUrl+"/install?platform="+PLATFORM+"&device="+deviceId);
     manager->get(url);
 }
 
