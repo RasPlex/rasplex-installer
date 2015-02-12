@@ -149,12 +149,11 @@ Make sure to install everything (including source components).
 
 ### Building Qt
 
-Go to the source directory where you installed qt, and enter "qtbase". Run the following configure command:
+Go to the source directory where you installed qt, and enter "qtbase". Run the following configure command (works on 5.2.1 on ubuntu):
 
 
 ```bash
-
-./configure -static -debug-and-release -opensource -confirm-license  -nomake tools -nomake examples -no-opengl -no-accessibility -process -qt-sql-sqlite -qt-zlib -qt-libpng -qt-libjpeg -no-icu  -qt-pcre -qt-xcb  -no-egl -no-cups  -no-linuxfb   -no-dbus
+OPENSSL_LIBS="-lssl -lcrypto" ./configure -static -release -opensource -nomake tools -nomake examples -no-accessibility -no-openvg -no-nis -no-iconv -no-directfb -no-icu -no-gif -no-libjpeg -strip -no-dbus -no-audio-backend -no-qml-debug -no-c++11 -system-zlib -no-linuxfb -no-eglfs -no-sql-mysql -no-sql-odbc  -no-cups -no-glib -no-qml-debug -no-javascript-jit -no-mtdev -qt-sql-sqlite -qt-xcb -confirm-license -fontconfig -openssl-linked
 make -j `nproc`
 ```
 
