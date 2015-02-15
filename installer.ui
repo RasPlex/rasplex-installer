@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>555</width>
-    <height>579</height>
+    <height>758</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -57,9 +57,19 @@
     </layout>
    </item>
    <item>
+    <widget class="QLabel" name="deviceSelectText">
+     <property name="text">
+      <string>Step 1: Select your RasPlex device</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QComboBox" name="deviceSelectBox"/>
+   </item>
+   <item>
     <widget class="QLabel" name="releaseLabel">
      <property name="text">
-      <string>Step 1: Select Version</string>
+      <string>Step 2: Select Version</string>
      </property>
     </widget>
    </item>
@@ -67,26 +77,9 @@
     <widget class="QComboBox" name="releaseLinks"/>
    </item>
    <item>
-    <widget class="QLabel" name="upgradeLabel">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="text">
-      <string>Auto-updates</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QComboBox" name="upgradeLinks">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QLabel" name="removableDevicesLabel">
      <property name="text">
-      <string>Step 2: Select Device to flash</string>
+      <string>Step 3: Select flash target (e.g. you SD card)</string>
      </property>
     </widget>
    </item>
@@ -96,7 +89,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Step 3: Download Image or select local image file</string>
+      <string>Step 4: Download Image or select local image file</string>
      </property>
     </widget>
    </item>
@@ -118,7 +111,7 @@
      <item>
       <widget class="QPushButton" name="refreshDeiceListButton">
        <property name="text">
-        <string>&amp;Refresh Device List</string>
+        <string>&amp;Refresh target list</string>
        </property>
       </widget>
      </item>
@@ -299,9 +292,12 @@
     </widget>
    </item>
    <item>
+    <widget class="QStackedWidget" name="releaseNotes"/>
+   </item>
+   <item>
     <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>Step 4: Flash selected device with selected image</string>
+      <string>Step 5: Flash selected device with selected image</string>
      </property>
     </widget>
    </item>

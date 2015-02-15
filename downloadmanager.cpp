@@ -28,6 +28,9 @@ QNetworkReply* DownloadManager::get(const QUrl &url)
     qDebug() << "Getting" << url;
 
     latestReply = manager->get(req);
+#if defined(Q_OS_WIN)
+    latestReply->ignoreSslErrors();
+#endif
     return latestReply;
 }
 
@@ -77,6 +80,9 @@ void DownloadManager::handleGetFinished(QNetworkReply *reply)
 
         default:
             qDebug() << "Unhandled reply:" << responseCode;
+            foreach (const QByteArray& header, reply->rawHeaderList()) {
+                qDebug() << header << reply->rawHeader(header);
+            }
             break;
         }
     }
@@ -85,6 +91,9 @@ void DownloadManager::handleGetFinished(QNetworkReply *reply)
     }
 
     reply->deleteLater();
+    if (reply == latestReply) {
+        latestReply = NULL;
+    }
 }
 
 void DownloadManager::handleReadyRead()
@@ -104,5 +113,6 @@ void DownloadManager::handleReadyRead()
     else {
         qDebug() << "HandleReadyRead(): Something went wrong with the get request:" << latestReply->errorString();
         latestReply->deleteLater();
+        latestReply = NULL;
     }
 }

@@ -1,10 +1,5 @@
 #include "installer.h"
 #include "ui_installer.h"
-#include "QJsonDocument.h"
-#include "QJsonObject.h"
-#include "QJsonArray.h"
-#include "QJsonValue.h"
-
 
 #include <QString>
 #include <QFile>
@@ -15,10 +10,7 @@
 #include <QNetworkRequest>
 #include <QMessageBox>
 #include <QThread>
-
-#if QT_VERSION >= 0x050000
-#include <QStandardPaths>
-#endif
+#include <QPlainTextEdit>
 
 #if defined(Q_OS_WIN)
 #include "diskwriter_windows.h"
@@ -29,6 +21,10 @@
 #include "deviceenumerator_unix.h"
 #include "confighandler_unix.h"
 #endif
+#include "simplejsonparser.h"
+
+const QString Installer::m_serverUrl = "updater.rasplex.com";
+//const QString Installer::m_serverUrl = "localhost:8080"; // for testing
 
 // TODO: Get chunk size from server, or whatever
 #define CHUNKSIZE 1*1024*1024
@@ -68,7 +64,7 @@ Installer::Installer(QWidget *parent) :
     connect(manager, SIGNAL(downloadComplete(QByteArray)), this, SLOT(handleFinishedDownload(QByteArray)));
     connect(manager, SIGNAL(partialData(QByteArray,qlonglong)),
             this, SLOT(handlePartialData(QByteArray,qlonglong)));
-    connect(ui->linksButton, SIGNAL(clicked()), this, SLOT(updateLinks()));
+    connect(ui->linksButton, SIGNAL(clicked()), this, SLOT(updateDevices()));
     connect(ui->downloadButton, SIGNAL(clicked()), this, SLOT(downloadImage()));
     connect(ui->cancelButton, SIGNAL(clicked()), this, SLOT(cancel()));
     connect(ui->cancelButton, SIGNAL(clicked()), manager, SLOT(cancelDownload()));
@@ -84,10 +80,13 @@ Installer::Installer(QWidget *parent) :
     connect(ui->sdtvMode_2, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
     connect(ui->sdtvMode_3, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
 
+    connect(ui->releaseLinks, SIGNAL(currentIndexChanged(int)), ui->releaseNotes, SLOT(setCurrentIndex(int)));
+    connect(ui->deviceSelectBox, SIGNAL(currentIndexChanged(int)), this, SLOT(getDeviceReleases(int)));
+
+
+
 
     ui->videoGroupBox->setVisible(configHandler->implemented());
-    ui->upgradeLabel->setVisible(false);
-    ui->upgradeLinks->setVisible(false);
     adjustSize();
 
     ui->hdmiOutputButton->setChecked(true);
@@ -97,7 +96,7 @@ Installer::Installer(QWidget *parent) :
     setImageFileName("");
     ui->writeButton->setEnabled(false);
 
-    updateLinks();
+    updateDevices();
 }
 
 Installer::~Installer()
@@ -136,33 +135,55 @@ void Installer::cancel()
     reset();
 }
 
-void Installer::parseAndSetLinks(const QByteArray &data)
+void Installer::parseAndSetSupportedDevices(const QByteArray &data)
 {
+    SimpleJsonParser parser(data);
 
-    QString myString(data);
-    qDebug()<< myString ;
-    QJsonDocument jsonData = QJsonDocument::fromJson(myString.toUtf8());
-    QJsonArray releases = jsonData.array();
+    ui->deviceSelectBox->clear();
 
-    ui->releaseLinks->clear();
-    ui->upgradeLinks->clear();
-
-    foreach (const QJsonValue & value, releases) {
-
-            QJsonObject json = value.toObject();
-            QString releaseName = json["version"].toString();
-            QString url = json["install_url"].toString();
-            QString notes = json["notes"].toString();
-            QString foo = json["baoesae"].toString();
-            QString localchecksum = json["install_sum"].toString();
-
-            checksumMap[releaseName] = localchecksum;
-            ui->releaseLinks->insertItem(0, releaseName ,url);
-            qDebug() << url;
-
-            qDebug() << notes;
+    JsonArray devices = parser.getJsonArray();
+    for (JsonArray::const_iterator it = devices.constBegin();
+         it != devices.constEnd(); it++) {
+        QString deviceName = (*it)["name"];
+        QString deviceId = (*it)["id"];
+        ui->deviceSelectBox->insertItem(0, deviceName ,deviceId);
     }
 
+    reset();
+    getDeviceReleases(ui->deviceSelectBox->currentIndex());
+}
+
+void Installer::parseAndSetLinks(const QByteArray &data)
+{
+    SimpleJsonParser parser(data);
+    qDebug()<< data;
+
+    ui->releaseLinks->clear();
+
+    /* Clear all release notes */
+    while (ui->releaseNotes->count()) {
+        QWidget* widget = ui->releaseNotes->widget(0);
+        ui->releaseNotes->removeWidget(widget);
+        widget->deleteLater();
+    }
+
+    JsonArray releases = parser.getJsonArray();
+    for (JsonArray::const_iterator it = releases.constBegin();
+         it != releases.constEnd(); it++) {
+        QString releaseName = (*it)["version"];
+        QString url = (*it)["install_url"];
+        QString notes = (*it)["notes"];
+        QString localchecksum = (*it)["install_sum"];
+
+        checksumMap[releaseName] = localchecksum;
+
+        ui->releaseLinks->insertItem(0, releaseName ,url);
+
+        /* Add release note */
+        QPlainTextEdit* releaseNotesEdit = new QPlainTextEdit(notes);
+        releaseNotesEdit->setReadOnly(true);
+        ui->releaseNotes->insertWidget(0, releaseNotesEdit);
+    }
 
     reset();
 
@@ -175,6 +196,7 @@ void Installer::reset(const QString &message)
     if (imageFile.isOpen()) {
         imageFile.close();
     }
+    ui->deviceSelectBox->setEnabled(true);
     ui->releaseLinks->setEnabled(true);
     ui->linksButton->setEnabled(true);
     ui->downloadButton->setEnabled(true);
@@ -192,6 +214,7 @@ void Installer::reset(const QString &message)
 
 void Installer::disableControls()
 {
+    ui->deviceSelectBox->setEnabled(false);
     ui->releaseLinks->setEnabled(false);
     ui->linksButton->setEnabled(false);
     ui->downloadButton->setEnabled(false);
@@ -283,6 +306,10 @@ void Installer::setImageFileName(QString filename)
 void Installer::handleFinishedDownload(const QByteArray &data)
 {
     switch (state) {
+    case STATE_GET_SUPPORTED_DEVICES:
+        parseAndSetSupportedDevices(data);
+        break;
+
     case STATE_GETTING_LINKS:
         parseAndSetLinks(data);
         break;
@@ -347,13 +374,34 @@ void Installer::handlePartialData(const QByteArray &data, qlonglong total)
     }
 }
 
-void Installer::updateLinks()
+void Installer::updateDevices()
+{
+    state = STATE_GET_SUPPORTED_DEVICES;
+    disableControls();
+
+    ui->messageBar->setText("Getting supported RasPlex devices");
+    QUrl url("http://"+m_serverUrl+"/devices");
+    manager->get(url);
+}
+
+void Installer::getDeviceReleases(int index)
 {
     state = STATE_GETTING_LINKS;
     disableControls();
 
-    ui->messageBar->setText("Getting latest releases from GitHub.");
-    QUrl url("http://updater.rasplex.com/install");
+
+#if defined( Q_OS_WIN)
+    QString PLATFORM = "windows";
+#elif defined(Q_OS_LINUX)
+    QString PLATFORM = "linux";
+#elif defined(Q_OS_MAC)
+    QString PLATFORM = "osx";
+#endif
+
+    QString deviceName = ui->deviceSelectBox->itemText(index);
+    QString deviceId = ui->deviceSelectBox->itemData(index).toString();
+    ui->messageBar->setText("Getting releases for "+deviceName);
+    QUrl url("http://"+m_serverUrl+"/install?platform="+PLATFORM+"&device="+deviceId);
     manager->get(url);
 }
 
@@ -387,10 +435,11 @@ void Installer::downloadImage()
 
         newFileName = savedir +QDir::separator ()+ newFileName + ".img.gz";
 
-        if (newFileName.isEmpty()) {
+        if (savedir.isEmpty() || newFileName.isEmpty()) {
             reset();
             return;
         }
+        qDebug() << "Downloading to" << newFileName;
 
         if (imageFile.isOpen())
             imageFile.close();

@@ -15,21 +15,12 @@ SOURCES += main.cpp\
     installer.cpp \
     confighandler.cpp \
     downloadmanager.cpp \
-    diskwriter.cpp
-
-
-
-SOURCES += QJsonArray.cpp      \
-           QJsonDocument.cpp   \
-           QJsonObject.cpp     \
-           QJsonParseError.cpp \
-           QJsonValue.cpp      \
-           QJsonValueRef.cpp   \
-           QJsonParser.cpp     \
-
+    diskwriter.cpp \
+    simplejsonparser.cpp
 
 
 static { # everything below takes effect with CONFIG += static
+    LIBS += -L$$PWD/3rd-party
     CONFIG += static
     CONFIG += staticlib # this is needed if you create a static library, not a static executable
     DEFINES += STATIC
@@ -42,18 +33,8 @@ HEADERS  += installer.h \
     zconf.h \
     confighandler.h \
     downloadmanager.h \
-    deviceenumerator.h
-
-INCLUDEPATH += qjson4
-
-HEADERS += QJsonArray.h        \
-           QJsonDocument.h     \
-           QJsonObject.h       \
-           QJsonParseError.h   \
-           QJsonValue.h        \
-           QJsonValueRef.h     \
-           QJsonParser.h       \
-           QJsonRoot.h         \
+    deviceenumerator.h \
+    simplejsonparser.h
 
 
 win32 {
@@ -84,7 +65,9 @@ linux* {
 
 FORMS    += installer.ui
 
-LIBS += -L3rd-party -lz
+LIBS += -lz
+
+lessThan(QT_MAJOR_VERSION, 5): LIBS += -lqjson
 
 OTHER_FILES +=
 
