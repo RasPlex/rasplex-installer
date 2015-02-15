@@ -20,6 +20,7 @@ SOURCES += main.cpp\
 
 
 static { # everything below takes effect with CONFIG += static
+    LIBS += -L$$PWD/3rd-party
     CONFIG += static
     CONFIG += staticlib # this is needed if you create a static library, not a static executable
     DEFINES += STATIC
@@ -64,7 +65,7 @@ linux* {
 
 FORMS    += installer.ui
 
-LIBS += -L$$PWD/3rd-party -lz
+LIBS += -lz
 
 lessThan(QT_MAJOR_VERSION, 5): LIBS += -lqjson
 
