@@ -91,6 +91,9 @@ void DownloadManager::handleGetFinished(QNetworkReply *reply)
     }
 
     reply->deleteLater();
+    if (reply == latestReply) {
+        latestReply = NULL;
+    }
 }
 
 void DownloadManager::handleReadyRead()
@@ -110,5 +113,6 @@ void DownloadManager::handleReadyRead()
     else {
         qDebug() << "HandleReadyRead(): Something went wrong with the get request:" << latestReply->errorString();
         latestReply->deleteLater();
+        latestReply = NULL;
     }
 }
