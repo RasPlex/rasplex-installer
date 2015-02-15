@@ -81,7 +81,7 @@ private slots:
     void handlePartialData(const QByteArray& data, qlonglong total);
     void cancel();
     void updateDevices();
-    void getSupportedDevices(const QByteArray &data);
+    void parseAndSetSupportedDevices(const QByteArray &data);
     void getDeviceReleases(int index);
     void refreshDeviceList();
     void downloadImage();

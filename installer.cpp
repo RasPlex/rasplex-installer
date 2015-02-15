@@ -135,7 +135,7 @@ void Installer::cancel()
     reset();
 }
 
-void Installer::getSupportedDevices(const QByteArray &data)
+void Installer::parseAndSetSupportedDevices(const QByteArray &data)
 {
     SimpleJsonParser parser(data);
 
@@ -196,6 +196,7 @@ void Installer::reset(const QString &message)
     if (imageFile.isOpen()) {
         imageFile.close();
     }
+    ui->deviceSelectBox->setEnabled(true);
     ui->releaseLinks->setEnabled(true);
     ui->linksButton->setEnabled(true);
     ui->downloadButton->setEnabled(true);
@@ -213,6 +214,7 @@ void Installer::reset(const QString &message)
 
 void Installer::disableControls()
 {
+    ui->deviceSelectBox->setEnabled(false);
     ui->releaseLinks->setEnabled(false);
     ui->linksButton->setEnabled(false);
     ui->downloadButton->setEnabled(false);
@@ -305,7 +307,7 @@ void Installer::handleFinishedDownload(const QByteArray &data)
 {
     switch (state) {
     case STATE_GET_SUPPORTED_DEVICES:
-        getSupportedDevices(data);
+        parseAndSetSupportedDevices(data);
         break;
 
     case STATE_GETTING_LINKS:
