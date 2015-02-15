@@ -59,7 +59,7 @@
    <item>
     <widget class="QLabel" name="deviceSelectText">
      <property name="text">
-      <string>Step 1: Select your Device</string>
+      <string>Step 1: Select your RasPlex device</string>
      </property>
     </widget>
    </item>
@@ -79,7 +79,7 @@
    <item>
     <widget class="QLabel" name="removableDevicesLabel">
      <property name="text">
-      <string>Step 3: Select Device to flash</string>
+      <string>Step 3: Select flash target (e.g. you SD card)</string>
      </property>
     </widget>
    </item>
@@ -111,7 +111,7 @@
      <item>
       <widget class="QPushButton" name="refreshDeiceListButton">
        <property name="text">
-        <string>&amp;Refresh Device List</string>
+        <string>&amp;Refresh target list</string>
        </property>
       </widget>
      </item>
