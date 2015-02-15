@@ -16,7 +16,7 @@ SOURCES += main.cpp\
     confighandler.cpp \
     downloadmanager.cpp \
     diskwriter.cpp \
-    linkparser.cpp
+    simplejsonparser.cpp
 
 
 static { # everything below takes effect with CONFIG += static
@@ -34,7 +34,7 @@ HEADERS  += installer.h \
     confighandler.h \
     downloadmanager.h \
     deviceenumerator.h \
-    linkparser.h
+    simplejsonparser.h
 
 
 win32 {

@@ -21,7 +21,7 @@
 #include "deviceenumerator_unix.h"
 #include "confighandler_unix.h"
 #endif
-#include "linkparser.h"
+#include "simplejsonparser.h"
 
 const QString Installer::m_serverUrl = "updater.rasplex.com";
 //const QString Installer::m_serverUrl = "localhost:8080"; // for testing
@@ -137,12 +137,12 @@ void Installer::cancel()
 
 void Installer::getSupportedDevices(const QByteArray &data)
 {
-    DeviceParser deviceParser(data);
+    SimpleJsonParser parser(data);
 
     ui->deviceSelectBox->clear();
 
-    QList<DeviceData> devices = deviceParser.devices();
-    for (QList<DeviceData>::const_iterator it = devices.constBegin();
+    JsonArray devices = parser.getJsonArray();
+    for (JsonArray::const_iterator it = devices.constBegin();
          it != devices.constEnd(); it++) {
         QString deviceName = (*it)["name"];
         QString deviceId = (*it)["id"];
@@ -155,7 +155,7 @@ void Installer::getSupportedDevices(const QByteArray &data)
 
 void Installer::parseAndSetLinks(const QByteArray &data)
 {
-    LinkParser linkParser(data);
+    SimpleJsonParser parser(data);
     qDebug()<< data;
 
     ui->releaseLinks->clear();
@@ -167,8 +167,8 @@ void Installer::parseAndSetLinks(const QByteArray &data)
         widget->deleteLater();
     }
 
-    QList<ReleaseData> releases = linkParser.releases();
-    for (QList<ReleaseData>::const_iterator it = releases.constBegin();
+    JsonArray releases = parser.getJsonArray();
+    for (JsonArray::const_iterator it = releases.constBegin();
          it != releases.constEnd(); it++) {
         QString releaseName = (*it)["version"];
         QString url = (*it)["install_url"];
