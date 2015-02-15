@@ -297,7 +297,7 @@
    <item>
     <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>Step 4: Flash selected device with selected image</string>
+      <string>Step 5: Flash selected device with selected image</string>
      </property>
     </widget>
    </item>
