@@ -89,7 +89,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Step 4: Download Image or select local image file</string>
+      <string>Step 4: Download Image or select a local image file</string>
      </property>
     </widget>
    </item>
@@ -297,7 +297,7 @@
    <item>
     <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>Step 5: Flash selected device with selected image</string>
+      <string>Step 5: Write image to target</string>
      </property>
     </widget>
    </item>
