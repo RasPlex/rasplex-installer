@@ -49,6 +49,14 @@ win32 {
     RC_FILE = rasplex-installer.rc
 }
 unix {
+    # remove possible other optimization flags
+    QMAKE_CFLAGS_RELEASE -= -O
+    QMAKE_CFLAGS_RELEASE -= -O1
+    QMAKE_CFLAGS_RELEASE -= -O2
+    QMAKE_CFLAGS_RELEASE -= -O3
+    # Optimize for size
+    QMAKE_CFLAGS_RELEASE += -Os
+
     QMAKE_CXXFLAGS += -fPIC
     SOURCES += diskwriter_unix.cpp \
         confighandler_unix.cpp \
