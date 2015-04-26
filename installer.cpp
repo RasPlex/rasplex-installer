@@ -425,7 +425,7 @@ void Installer::downloadImage()
     }
     else {
         // Try to find file name in url
-        QString newFileName = url.toString().section('/',-2,-2);
+        QString newFileName = url.toString().section('/',-1,-1);
 
         qDebug() << QDir::homePath() + "/" + newFileName;
 
@@ -435,7 +435,10 @@ void Installer::downloadImage()
                                                     | QFileDialog::DontResolveSymlinks);
 
 
-        newFileName = savedir +QDir::separator ()+ newFileName + ".img.gz";
+        newFileName = savedir +QDir::separator ()+ newFileName;
+        if (!newFileName.endsWith(".img.gz")) {
+            newFileName += ".img.gz";
+        }
 
         if (savedir.isEmpty() || newFileName.isEmpty()) {
             reset();
