@@ -1,6 +1,7 @@
 #include "installer.h"
 #include "ui_installer.h"
 
+#include <QDebug>
 #include <QString>
 #include <QFile>
 #include <QFileDialog>
@@ -137,6 +138,7 @@ void Installer::cancel()
 
 void Installer::parseAndSetSupportedDevices(const QByteArray &data)
 {
+    qDebug() << "Devices:" << data;
     SimpleJsonParser parser(data);
 
     ui->deviceSelectBox->clear();
@@ -156,7 +158,7 @@ void Installer::parseAndSetSupportedDevices(const QByteArray &data)
 void Installer::parseAndSetLinks(const QByteArray &data)
 {
     SimpleJsonParser parser(data);
-    qDebug()<< data;
+    qDebug()<< "Links:" << data;
 
     ui->releaseLinks->clear();
 
@@ -170,14 +172,14 @@ void Installer::parseAndSetLinks(const QByteArray &data)
     JsonArray releases = parser.getJsonArray();
     for (JsonArray::const_iterator it = releases.constBegin();
          it != releases.constEnd(); it++) {
-        QString releaseName = (*it)["version"];
+        QString version = (*it)["version"];
         QString url = (*it)["install_url"];
         QString notes = (*it)["notes"];
         QString localchecksum = (*it)["install_sum"];
 
-        checksumMap[releaseName] = localchecksum;
+        checksumMap[version] = localchecksum;
 
-        ui->releaseLinks->insertItem(0, releaseName ,url);
+        ui->releaseLinks->insertItem(0, version, url);
 
         /* Add release note */
         QPlainTextEdit* releaseNotesEdit = new QPlainTextEdit(notes);
@@ -423,7 +425,7 @@ void Installer::downloadImage()
     }
     else {
         // Try to find file name in url
-        QString newFileName = url.toString().section('/',-2,-2);
+        QString newFileName = url.toString().section('/',-1,-1);
 
         qDebug() << QDir::homePath() + "/" + newFileName;
 
@@ -433,7 +435,10 @@ void Installer::downloadImage()
                                                     | QFileDialog::DontResolveSymlinks);
 
 
-        newFileName = savedir +QDir::separator ()+ newFileName + ".img.gz";
+        newFileName = savedir +QDir::separator ()+ newFileName;
+        if (!newFileName.endsWith(".img.gz")) {
+            newFileName += ".img.gz";
+        }
 
         if (savedir.isEmpty() || newFileName.isEmpty()) {
             reset();
