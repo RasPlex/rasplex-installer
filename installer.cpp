@@ -172,14 +172,14 @@ void Installer::parseAndSetLinks(const QByteArray &data)
     JsonArray releases = parser.getJsonArray();
     for (JsonArray::const_iterator it = releases.constBegin();
          it != releases.constEnd(); it++) {
-        QString releaseName = (*it)["version"];
+        QString version = (*it)["version"];
         QString url = (*it)["install_url"];
         QString notes = (*it)["notes"];
         QString localchecksum = (*it)["install_sum"];
 
-        checksumMap[releaseName] = localchecksum;
+        checksumMap[version] = localchecksum;
 
-        ui->releaseLinks->insertItem(0, releaseName, url);
+        ui->releaseLinks->insertItem(0, version, url);
 
         /* Add release note */
         QPlainTextEdit* releaseNotesEdit = new QPlainTextEdit(notes);
