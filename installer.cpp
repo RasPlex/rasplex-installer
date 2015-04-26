@@ -1,6 +1,7 @@
 #include "installer.h"
 #include "ui_installer.h"
 
+#include <QDebug>
 #include <QString>
 #include <QFile>
 #include <QFileDialog>
@@ -137,6 +138,7 @@ void Installer::cancel()
 
 void Installer::parseAndSetSupportedDevices(const QByteArray &data)
 {
+    qDebug() << "Devices:" << data;
     SimpleJsonParser parser(data);
 
     ui->deviceSelectBox->clear();
@@ -156,7 +158,7 @@ void Installer::parseAndSetSupportedDevices(const QByteArray &data)
 void Installer::parseAndSetLinks(const QByteArray &data)
 {
     SimpleJsonParser parser(data);
-    qDebug()<< data;
+    qDebug()<< "Links:" << data;
 
     ui->releaseLinks->clear();
 
@@ -177,7 +179,7 @@ void Installer::parseAndSetLinks(const QByteArray &data)
 
         checksumMap[releaseName] = localchecksum;
 
-        ui->releaseLinks->insertItem(0, releaseName ,url);
+        ui->releaseLinks->insertItem(0, releaseName, url);
 
         /* Add release note */
         QPlainTextEdit* releaseNotesEdit = new QPlainTextEdit(notes);
