@@ -141,6 +141,7 @@ void Installer::parseAndSetSupportedDevices(const QByteArray &data)
     qDebug() << "Devices:" << data;
     SimpleJsonParser parser(data);
 
+    QString previouslySelectedDevice = ui->deviceSelectBox->currentText();
     ui->deviceSelectBox->clear();
 
     JsonArray devices = parser.getJsonArray();
@@ -149,6 +150,12 @@ void Installer::parseAndSetSupportedDevices(const QByteArray &data)
         QString deviceName = (*it)["name"];
         QString deviceId = (*it)["id"];
         ui->deviceSelectBox->insertItem(0, deviceName ,deviceId);
+    }
+
+    int idx = ui->deviceSelectBox->findText(previouslySelectedDevice,
+                                            Qt::MatchFixedString);
+    if (idx >= 0) {
+        ui->deviceSelectBox->setCurrentIndex(idx);
     }
 
     reset();
@@ -160,6 +167,7 @@ void Installer::parseAndSetLinks(const QByteArray &data)
     SimpleJsonParser parser(data);
     qDebug()<< "Links:" << data;
 
+    QString previouslySelectedRelease = ui->releaseLinks->currentText();
     ui->releaseLinks->clear();
 
     /* Clear all release notes */
@@ -185,6 +193,12 @@ void Installer::parseAndSetLinks(const QByteArray &data)
         QPlainTextEdit* releaseNotesEdit = new QPlainTextEdit(notes);
         releaseNotesEdit->setReadOnly(true);
         ui->releaseNotes->insertWidget(0, releaseNotesEdit);
+    }
+
+    int idx = ui->releaseLinks->findText(previouslySelectedRelease,
+                                         Qt::MatchFixedString);
+    if (idx >= 0) {
+        ui->releaseLinks->setCurrentIndex(idx);
     }
 
     reset();
