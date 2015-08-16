@@ -158,7 +158,6 @@ void Installer::parseAndSetSupportedDevices(const QByteArray &data)
         ui->deviceSelectBox->setCurrentIndex(idx);
     }
 
-    reset();
     getDeviceReleases(ui->deviceSelectBox->currentIndex());
 }
 
@@ -199,6 +198,7 @@ void Installer::parseAndSetLinks(const QByteArray &data)
                                          Qt::MatchFixedString);
     if (idx >= 0) {
         ui->releaseLinks->setCurrentIndex(idx);
+        ui->releaseNotes->setCurrentIndex(idx);
     }
 
     reset();
@@ -212,7 +212,9 @@ void Installer::reset(const QString &message)
     if (imageFile.isOpen()) {
         imageFile.close();
     }
+    ui->deviceSelectBox->blockSignals(false);
     ui->deviceSelectBox->setEnabled(true);
+    ui->releaseLinks->blockSignals(false);
     ui->releaseLinks->setEnabled(true);
     ui->linksButton->setEnabled(true);
     ui->downloadButton->setEnabled(true);
@@ -231,7 +233,9 @@ void Installer::reset(const QString &message)
 void Installer::disableControls()
 {
     ui->deviceSelectBox->setEnabled(false);
+    ui->deviceSelectBox->blockSignals(true);
     ui->releaseLinks->setEnabled(false);
+    ui->releaseLinks->blockSignals(true);
     ui->linksButton->setEnabled(false);
     ui->downloadButton->setEnabled(false);
     ui->writeButton->setEnabled(false);
@@ -336,7 +340,10 @@ void Installer::handleFinishedDownload(const QByteArray &data)
         downloadUrl = downloadUrl.trimmed();
         qDebug() << "Got url" << downloadUrl;
         int idx = ui->releaseLinks->findData(downloadUrl);
-        ui->releaseLinks->setCurrentIndex(idx);
+        if (idx >= 0) {
+            ui->releaseLinks->setCurrentIndex(idx);
+            ui->releaseNotes->setCurrentIndex(idx);
+        }
         reset();
         ui->downloadButton->click();
         break;
