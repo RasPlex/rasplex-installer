@@ -65,6 +65,7 @@ private:
     QString downloadUrl;
     QString checksum;
     QString selectedVersion;
+    QString selectedSaveDir;
     QMap<QString, QString> checksumMap;
     DiskWriter *diskWriter;
     QThread* diskWriterThread;

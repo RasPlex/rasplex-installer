@@ -456,20 +456,27 @@ void Installer::downloadImage()
         // Try to find file name in url
         QString newFileName = url.toString().section('/',-1,-1);
 
-        qDebug() << QDir::homePath() + "/" + newFileName;
+        if (selectedSaveDir.isEmpty()) {
+            selectedSaveDir = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+            if (selectedSaveDir.isEmpty()) {
+                selectedSaveDir = QDir::homePath();
+            }
+        }
 
-        QString savedir = QFileDialog::getExistingDirectory(this, tr("Directory To Store Image"),
-                                                    QDir::homePath(),
+        qDebug() << selectedSaveDir + "/" + newFileName;
+
+        selectedSaveDir = QFileDialog::getExistingDirectory(this, tr("Directory To Store Image"),
+                                                    selectedSaveDir,
                                                     QFileDialog::ShowDirsOnly
                                                     | QFileDialog::DontResolveSymlinks);
 
 
-        newFileName = savedir +QDir::separator ()+ newFileName;
+        newFileName = selectedSaveDir +QDir::separator ()+ newFileName;
         if (!newFileName.endsWith(".img.gz")) {
             newFileName += ".img.gz";
         }
 
-        if (savedir.isEmpty() || newFileName.isEmpty()) {
+        if (selectedSaveDir.isEmpty() || newFileName.isEmpty()) {
             reset();
             return;
         }
