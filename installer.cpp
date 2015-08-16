@@ -114,6 +114,8 @@ Installer::~Installer()
 void Installer::refreshDeviceList()
 {
     qDebug() << "Refreshing device list";
+
+    QString previouslySelectedDevice = ui->removableDevicesComboBox->currentText();
     ui->removableDevicesComboBox->clear();
 
     QStringList devNames = devEnumerator->getRemovableDeviceNames();
@@ -123,7 +125,13 @@ void Installer::refreshDeviceList()
         ui->removableDevicesComboBox->addItem(friendlyNames[i], devNames[i]);
     }
 
-    ui->removableDevicesComboBox->setCurrentIndex(ui->removableDevicesComboBox->count()-1);
+    int idx = ui->removableDevicesComboBox->findText(previouslySelectedDevice,
+                                                     Qt::MatchFixedString);
+    if (idx >= 0) {
+        ui->removableDevicesComboBox->setCurrentIndex(idx);
+    } else {
+        ui->removableDevicesComboBox->setCurrentIndex(ui->removableDevicesComboBox->count()-1);
+    }
 }
 
 void Installer::cancel()
