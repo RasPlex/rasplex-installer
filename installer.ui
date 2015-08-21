@@ -109,7 +109,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="refreshDeiceListButton">
+      <widget class="QPushButton" name="refreshRemovablesButton">
        <property name="text">
         <string>&amp;Refresh target list</string>
        </property>

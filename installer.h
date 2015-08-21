@@ -1,10 +1,10 @@
 #ifndef INSTALLER_H
 #define INSTALLER_H
 
-#include <QDialog>
-#include <QtXml>
-#include <QNetworkAccessManager>
 #include <QCryptographicHash>
+#include <QDialog>
+#include <QNetworkAccessManager>
+#include <QtXml>
 
 #include "downloadmanager.h"
 
@@ -84,7 +84,7 @@ private slots:
     void updateDevices();
     void parseAndSetSupportedDevices(const QByteArray &data);
     void getDeviceReleases(int index);
-    void refreshDeviceList();
+    void refreshRemovablesList();
     void downloadImage();
     void getImageFileNameFromUser();
     void writeImageToDevice();

@@ -36,7 +36,8 @@ Installer::Installer(QWidget *parent) :
     manager(new DownloadManager(this)),
     state(STATE_IDLE),
     bytesDownloaded(0),
-    imageHash(QCryptographicHash::Md5)
+    imageHash(QCryptographicHash::Md5),
+    isCancelled(false)
 {
     ui->setupUi(this);
 
@@ -60,7 +61,8 @@ Installer::Installer(QWidget *parent) :
     connect(diskWriter, SIGNAL(error(QString)), this, SLOT(reset(QString)));
     diskWriterThread->start();
 
-    refreshDeviceList();
+    connect(ui->refreshRemovablesButton,SIGNAL(clicked()),this,SLOT(refreshRemovablesList()));
+    refreshRemovablesList();
 
     connect(manager, SIGNAL(downloadComplete(QByteArray)), this, SLOT(handleFinishedDownload(QByteArray)));
     connect(manager, SIGNAL(partialData(QByteArray,qlonglong)),
@@ -72,8 +74,6 @@ Installer::Installer(QWidget *parent) :
     connect(ui->loadButton, SIGNAL(clicked()), this, SLOT(getImageFileNameFromUser()));
     connect(ui->writeButton, SIGNAL(clicked()), this, SLOT(writeImageToDevice()));
 
-    connect(ui->refreshDeiceListButton,SIGNAL(clicked()),this,SLOT(refreshDeviceList()));
-
     connect(ui->hdmiOutputButton, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
     connect(ui->sdtvOutputButton, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
     connect(ui->sdtvMode_0, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
@@ -81,18 +81,14 @@ Installer::Installer(QWidget *parent) :
     connect(ui->sdtvMode_2, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
     connect(ui->sdtvMode_3, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
 
-    connect(ui->releaseLinks, SIGNAL(currentIndexChanged(int)), ui->releaseNotes, SLOT(setCurrentIndex(int)));
     connect(ui->deviceSelectBox, SIGNAL(currentIndexChanged(int)), this, SLOT(getDeviceReleases(int)));
-
-
-
+    connect(ui->releaseLinks, SIGNAL(currentIndexChanged(int)), ui->releaseNotes, SLOT(setCurrentIndex(int)));
+    connect(ui->releaseLinks, SIGNAL(currentIndexChanged(QString)), this, SLOT(savePreferredReleaseVersion(QString)));
 
     ui->videoGroupBox->setVisible(configHandler->implemented());
     adjustSize();
 
     ui->hdmiOutputButton->setChecked(true);
-    isCancelled = false;
-
 
     setImageFileName("");
     ui->writeButton->setEnabled(false);
@@ -111,9 +107,9 @@ Installer::~Installer()
     delete configHandler;
 }
 
-void Installer::refreshDeviceList()
+void Installer::refreshRemovablesList()
 {
-    qDebug() << "Refreshing device list";
+    qDebug() << "Refreshing removable devices list";
 
     QString previouslySelectedDevice = ui->removableDevicesComboBox->currentText();
     ui->removableDevicesComboBox->clear();
@@ -210,7 +206,6 @@ void Installer::parseAndSetLinks(const QByteArray &data)
     }
 
     reset();
-
 }
 
 void Installer::reset(const QString &message)
@@ -231,7 +226,7 @@ void Installer::reset(const QString &message)
     ui->hdmiOutputButton->setEnabled(true);
     ui->sdtvOutputButton->setEnabled(false);
     ui->cancelButton->setEnabled(false);
-    ui->refreshDeiceListButton->setEnabled(true);
+    ui->refreshRemovablesButton->setEnabled(true);
     ui->removableDevicesComboBox->setEnabled(true);
     isCancelled = false;
     ui->messageBar->setText(message);
@@ -251,7 +246,7 @@ void Installer::disableControls()
     ui->hdmiOutputButton->setEnabled(false);
     ui->sdtvOutputButton->setEnabled(false);
     ui->cancelButton->setEnabled(true);
-    ui->refreshDeiceListButton->setEnabled(false);
+    ui->refreshRemovablesButton->setEnabled(false);
     ui->removableDevicesComboBox->setEnabled(false);
 
 }
@@ -392,10 +387,6 @@ void Installer::handlePartialData(const QByteArray &data, qlonglong total)
     if (bytesDownloaded == total) {
         imageFile.close();
         ui->messageBar->setText("Download complete, verifying checksum...");
-
-
-
-
         if (isChecksumValid()) {
             reset("Download complete, verifying checksum... Done!");
         }
@@ -430,8 +421,9 @@ void Installer::getDeviceReleases(int index)
 #endif
 
     QString deviceName = ui->deviceSelectBox->itemText(index);
-    QString deviceId = ui->deviceSelectBox->itemData(index).toString();
     ui->messageBar->setText("Getting releases for "+deviceName);
+
+    QString deviceId = ui->deviceSelectBox->itemData(index).toString();
     QUrl url("http://"+m_serverUrl+"/install?platform="+PLATFORM+"&device="+deviceId);
     manager->get(url);
 }
@@ -509,7 +501,6 @@ void Installer::getImageFileNameFromUser()
         QMessageBox::information(this, tr(" "), "You must select a .img.gz file.");
         return;
     }
-
 
     if (filename.isNull()) {
         return;
