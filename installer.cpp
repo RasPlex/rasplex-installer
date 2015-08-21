@@ -56,7 +56,7 @@ Installer::Installer(QWidget *parent) :
     connect(diskWriterThread, SIGNAL(finished()), diskWriter, SLOT(deleteLater()));
     connect(this, SIGNAL(proceedToWriteImageToDevice(QString,QString)),
             diskWriter, SLOT(writeCompressedImageToRemovableDevice(QString,QString)));
-    connect(diskWriter, SIGNAL(bytesWritten(int)), ui->progressBar, SLOT(setValue(int)));
+    connect(diskWriter, SIGNAL(bytesWritten(int)), ui->flashProgressBar, SLOT(setValue(int)));
     connect(diskWriter, SIGNAL(syncing()), this, SLOT(writingSyncing()));
     connect(diskWriter, SIGNAL(finished()), this, SLOT(writingFinished()));
     connect(diskWriter, SIGNAL(error(QString)), this, SLOT(reset(QString)));
@@ -411,8 +411,8 @@ void Installer::handlePartialData(const QByteArray &data, qlonglong total)
     bytesDownloaded += data.size();
 
     // Update progress bar
-    ui->progressBar->setMaximum(total);
-    ui->progressBar->setValue(bytesDownloaded);
+    ui->downloadProgressBar->setMaximum(total);
+    ui->downloadProgressBar->setValue(bytesDownloaded);
     qDebug() << bytesDownloaded << "/" << total << "=" << (qreal)bytesDownloaded/total * 100 << "%";
 
     if (bytesDownloaded == total) {
@@ -558,8 +558,8 @@ void Installer::writeImageToDevice()
         return;
     }
 
-    ui->progressBar->setValue(0);
-    ui->progressBar->setMaximum(getUncompressedImageSize());
+    ui->flashProgressBar->setValue(0);
+    ui->flashProgressBar->setMaximum(getUncompressedImageSize());
     ui->messageBar->setText("Writing image to "+destination);
 
     // DiskWriter will re-open the image file.

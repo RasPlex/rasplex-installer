@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>555</width>
-    <height>758</height>
+    <height>785</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -146,6 +146,20 @@
       </spacer>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QProgressBar" name="downloadProgressBar">
+     <property name="value">
+      <number>0</number>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Step 5: Write image to target</string>
+     </property>
+    </widget>
    </item>
    <item>
     <layout class="QFormLayout" name="formLayout">
@@ -295,13 +309,6 @@
     <widget class="QStackedWidget" name="releaseNotes"/>
    </item>
    <item>
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Step 5: Write image to target</string>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QPushButton" name="writeButton">
      <property name="text">
       <string>&amp;Write SD card</string>
@@ -322,14 +329,7 @@
     </spacer>
    </item>
    <item>
-    <widget class="QLabel" name="messageBar">
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QProgressBar" name="progressBar">
+    <widget class="QProgressBar" name="flashProgressBar">
      <property name="value">
       <number>0</number>
      </property>
@@ -339,6 +339,13 @@
     <widget class="QPushButton" name="cancelButton">
      <property name="text">
       <string>C&amp;ancel</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="messageBar">
+     <property name="text">
+      <string/>
      </property>
     </widget>
    </item>
