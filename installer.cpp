@@ -69,8 +69,9 @@ Installer::Installer(QWidget *parent) :
             this, SLOT(handlePartialData(QByteArray,qlonglong)));
     connect(ui->linksButton, SIGNAL(clicked()), this, SLOT(updateDevices()));
     connect(ui->downloadButton, SIGNAL(clicked()), this, SLOT(downloadImage()));
-    connect(ui->cancelButton, SIGNAL(clicked()), this, SLOT(cancel()));
+    connect(ui->cancelButton, SIGNAL(clicked()), this, SLOT(reset()));
     connect(ui->cancelButton, SIGNAL(clicked()), manager, SLOT(cancelDownload()));
+    connect(ui->cancelButton, SIGNAL(clicked()), diskWriter, SLOT(cancelWrite()), Qt::DirectConnection) ;
     connect(ui->loadButton, SIGNAL(clicked()), this, SLOT(getImageFileNameFromUser()));
     connect(ui->writeButton, SIGNAL(clicked()), this, SLOT(writeImageToDevice()));
 
@@ -128,13 +129,6 @@ void Installer::refreshRemovablesList()
     } else {
         ui->removableDevicesComboBox->setCurrentIndex(ui->removableDevicesComboBox->count()-1);
     }
-}
-
-void Installer::cancel()
-{
-    diskWriter->cancelWrite();
-    ui->cancelButton->setEnabled(false);
-    reset();
 }
 
 void Installer::parseAndSetSupportedDevices(const QByteArray &data)
@@ -240,6 +234,12 @@ void Installer::reset(const QString &message)
     ui->removableDevicesComboBox->setEnabled(true);
     ui->messageBar->setText(message);
 
+}
+
+void Installer::resetProgressBars()
+{
+    ui->downloadProgressBar->setValue(0);
+    ui->flashProgressBar->setValue(0);
 }
 
 void Installer::savePreferredReleaseVersion(const QString& version)
@@ -606,6 +606,7 @@ void Installer::writingFinished()
     // Make sure the config is updated
     selectVideoOutput();
 
+    ui->flashProgressBar->setValue(ui->flashProgressBar->maximum());
     reset("Writing done!");
 }
 

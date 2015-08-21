@@ -13,9 +13,8 @@ public:
     DiskWriter(QObject *parent = 0) : QObject(parent) {}
     virtual ~DiskWriter() {}
 
-    void cancelWrite();
-
 public slots:
+    void cancelWrite();
     virtual bool writeCompressedImageToRemovableDevice(const QString &filename, const QString& device);
 
 signals:

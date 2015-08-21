@@ -81,7 +81,6 @@ signals:
 private slots:
     void handleFinishedDownload(const QByteArray& data);
     void handlePartialData(const QByteArray& data, qlonglong total);
-    void cancel();
     void updateDevices();
     void parseAndSetSupportedDevices(const QByteArray &data);
     void getDeviceReleases(int index);
@@ -93,6 +92,7 @@ private slots:
     void writingFinished();
     void writingSyncing();
     void reset(const QString& message = "Please download and select an image to write.");
+    void resetProgressBars();
     void savePreferredReleaseVersion(const QString &version);
 };
 

@@ -53,7 +53,11 @@ bool DiskWriter::writeCompressedImageToRemovableDevice(const QString &filename, 
             delete[] buf;
             return false;
         }
-        emit bytesWritten(gztell(src));
+        static int c = 0;
+        if ((++c % 200) == 0) {
+            this->sync();
+            emit bytesWritten(gztell(src));
+        }
         r = gzread(src, buf, 8192);
     }
 
