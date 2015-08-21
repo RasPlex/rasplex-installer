@@ -37,7 +37,6 @@ Installer::Installer(QWidget *parent) :
     state(STATE_IDLE),
     bytesDownloaded(0),
     imageHash(QCryptographicHash::Md5),
-    isCancelled(false),
     settings("RasPlex", "RasPlex Installer")
 {
     ui->setupUi(this);
@@ -133,9 +132,6 @@ void Installer::refreshRemovablesList()
 
 void Installer::cancel()
 {
-    if (!isCancelled)
-        isCancelled = true;
-
     diskWriter->cancelWrite();
     ui->cancelButton->setEnabled(false);
     reset();
@@ -242,7 +238,6 @@ void Installer::reset(const QString &message)
     ui->cancelButton->setEnabled(false);
     ui->refreshRemovablesButton->setEnabled(true);
     ui->removableDevicesComboBox->setEnabled(true);
-    isCancelled = false;
     ui->messageBar->setText(message);
 
 }

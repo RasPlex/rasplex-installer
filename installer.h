@@ -72,7 +72,6 @@ private:
     QThread* diskWriterThread;
     DeviceEnumerator* devEnumerator;
     ConfigHandler *configHandler;
-    bool isCancelled;
     static const QString m_serverUrl;
     QSettings settings;
 
