@@ -37,7 +37,8 @@ Installer::Installer(QWidget *parent) :
     state(STATE_IDLE),
     bytesDownloaded(0),
     imageHash(QCryptographicHash::Md5),
-    isCancelled(false)
+    isCancelled(false),
+    settings("RasPlex", "RasPlex Installer")
 {
     ui->setupUi(this);
 
@@ -145,7 +146,13 @@ void Installer::parseAndSetSupportedDevices(const QByteArray &data)
     qDebug() << "Devices:" << data;
     SimpleJsonParser parser(data);
 
-    QString previouslySelectedDevice = ui->deviceSelectBox->currentText();
+    QString previouslySelectedDevice;
+    if (ui->deviceSelectBox->count() == 0) {
+        previouslySelectedDevice = settings.value("preferred/device").toString();
+    }
+    else {
+        previouslySelectedDevice = ui->deviceSelectBox->currentText();
+    }
     ui->deviceSelectBox->clear();
 
     JsonArray devices = parser.getJsonArray();
@@ -161,6 +168,7 @@ void Installer::parseAndSetSupportedDevices(const QByteArray &data)
     if (idx >= 0) {
         ui->deviceSelectBox->setCurrentIndex(idx);
     }
+    settings.setValue("preferred/device", ui->deviceSelectBox->currentText());
 
     getDeviceReleases(ui->deviceSelectBox->currentIndex());
 }
@@ -170,7 +178,13 @@ void Installer::parseAndSetLinks(const QByteArray &data)
     SimpleJsonParser parser(data);
     qDebug()<< "Links:" << data;
 
-    QString previouslySelectedRelease = ui->releaseLinks->currentText();
+    QString previouslySelectedRelease;
+    if (ui->releaseLinks->count() == 0) {
+        previouslySelectedRelease = settings.value("preferred/release").toString();
+    }
+    else {
+        previouslySelectedRelease = ui->releaseLinks->currentText();
+    }
     ui->releaseLinks->clear();
 
     /* Clear all release notes */
@@ -231,6 +245,11 @@ void Installer::reset(const QString &message)
     isCancelled = false;
     ui->messageBar->setText(message);
 
+}
+
+void Installer::savePreferredReleaseVersion(const QString& version)
+{
+    settings.setValue("preferred/release", version);
 }
 
 void Installer::disableControls()
@@ -324,6 +343,18 @@ void Installer::setImageFileName(QString filename)
         filename.remove(0, idx+1);
     }
     ui->fileNameLabel->setText(filename);
+}
+
+QString Installer::getDefaultSaveDir()
+{
+    static QString defaultDir;
+    if (defaultDir.isEmpty()) {
+        defaultDir = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+        if (defaultDir.isEmpty()) {
+            defaultDir = QDir::homePath();
+        }
+    }
+    return defaultDir;
 }
 
 void Installer::handleFinishedDownload(const QByteArray &data)
@@ -421,6 +452,7 @@ void Installer::getDeviceReleases(int index)
 #endif
 
     QString deviceName = ui->deviceSelectBox->itemText(index);
+    settings.setValue("preferred/device", deviceName);
     ui->messageBar->setText("Getting releases for "+deviceName);
 
     QString deviceId = ui->deviceSelectBox->itemData(index).toString();
@@ -448,27 +480,22 @@ void Installer::downloadImage()
         // Try to find file name in url
         QString newFileName = url.toString().section('/',-1,-1);
 
-        if (selectedSaveDir.isEmpty()) {
-            selectedSaveDir = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
-            if (selectedSaveDir.isEmpty()) {
-                selectedSaveDir = QDir::homePath();
-            }
-        }
+        QString saveDir = settings.value("preferred/savedir", getDefaultSaveDir()).toString();
 
-        qDebug() << selectedSaveDir + "/" + newFileName;
+        qDebug() << saveDir + "/" + newFileName;
 
-        selectedSaveDir = QFileDialog::getExistingDirectory(this, tr("Directory To Store Image"),
-                                                    selectedSaveDir,
+        saveDir = QFileDialog::getExistingDirectory(this, tr("Directory To Store Image"),
+                                                    saveDir,
                                                     QFileDialog::ShowDirsOnly
                                                     | QFileDialog::DontResolveSymlinks);
 
 
-        newFileName = selectedSaveDir +QDir::separator ()+ newFileName;
+        newFileName = saveDir + QDir::separator() + newFileName;
         if (!newFileName.endsWith(".img.gz")) {
             newFileName += ".img.gz";
         }
 
-        if (selectedSaveDir.isEmpty() || newFileName.isEmpty()) {
+        if (saveDir.isEmpty() || newFileName.isEmpty()) {
             reset();
             return;
         }
@@ -487,22 +514,18 @@ void Installer::downloadImage()
         ui->messageBar->setText("Downloading image... please be patient.");
         ui->cancelButton->setEnabled(true);
         imageHash.reset();
+        settings.setValue("preferred/savedir", saveDir);
+        savePreferredReleaseVersion(selectedVersion);
     }
     manager->get(url);
 }
 
 void Installer::getImageFileNameFromUser()
 {
-
-    QString filename = QFileDialog::getOpenFileName(this, "Open rasplex image", QDir::homePath());
-
-    if (!filename.endsWith(".img.gz"))
-    {
-        QMessageBox::information(this, tr(" "), "You must select a .img.gz file.");
-        return;
-    }
-
-    if (filename.isNull()) {
+    QString loadDir = settings.value("preferred/savedir", getDefaultSaveDir()).toString();
+    QString filename = QFileDialog::getOpenFileName(this, "Open rasplex image", loadDir,
+                                                    "Compressed raw image (*img.gz)");
+    if (filename.isEmpty()) {
         return;
     }
 

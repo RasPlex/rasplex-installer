@@ -4,6 +4,7 @@
 #include <QCryptographicHash>
 #include <QDialog>
 #include <QNetworkAccessManager>
+#include <QSettings>
 #include <QtXml>
 
 #include "downloadmanager.h"
@@ -40,6 +41,7 @@ private:
     QNetworkRequest createRequest(QUrl &url, qlonglong first, qlonglong last);
     unsigned int getUncompressedImageSize();
     void setImageFileName(QString filename);
+    QString getDefaultSaveDir();
 
     enum {
         RESPONSE_OK = 200,
@@ -65,7 +67,6 @@ private:
     QString downloadUrl;
     QString checksum;
     QString selectedVersion;
-    QString selectedSaveDir;
     QMap<QString, QString> checksumMap;
     DiskWriter *diskWriter;
     QThread* diskWriterThread;
@@ -73,6 +74,7 @@ private:
     ConfigHandler *configHandler;
     bool isCancelled;
     static const QString m_serverUrl;
+    QSettings settings;
 
 signals:
     void proceedToWriteImageToDevice(const QString& image, const QString& device);
@@ -92,6 +94,7 @@ private slots:
     void writingFinished();
     void writingSyncing();
     void reset(const QString& message = "Please download and select an image to write.");
+    void savePreferredReleaseVersion(const QString &version);
 };
 
 #endif // INSTALLER_H
