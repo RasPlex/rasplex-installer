@@ -75,7 +75,10 @@ bool DiskWriter::writeCompressedImageToRemovableDevice(const QString &filename, 
     this->close();
     delete[] buf;
 
-    if (!isCancelled) {
+    if (isCancelled) {
+        emit bytesWritten(0);
+    }
+    else {
         emit finished();
     }
     isCancelled = false;

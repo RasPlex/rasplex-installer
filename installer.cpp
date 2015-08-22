@@ -69,9 +69,12 @@ Installer::Installer(QWidget *parent) :
             this, SLOT(handlePartialData(QByteArray,qlonglong)));
     connect(ui->linksButton, SIGNAL(clicked()), this, SLOT(updateDevices()));
     connect(ui->downloadButton, SIGNAL(clicked()), this, SLOT(downloadImage()));
-    connect(ui->cancelButton, SIGNAL(clicked()), this, SLOT(reset()));
-    connect(ui->cancelButton, SIGNAL(clicked()), manager, SLOT(cancelDownload()));
-    connect(ui->cancelButton, SIGNAL(clicked()), diskWriter, SLOT(cancelWrite()), Qt::DirectConnection) ;
+    connect(ui->cancelDownloadButton, SIGNAL(clicked()), this, SLOT(reset()));
+    connect(ui->cancelDownloadButton, SIGNAL(clicked()), this, SLOT(resetProgressBars()));
+    connect(ui->cancelDownloadButton, SIGNAL(clicked()), manager, SLOT(cancelDownload()));
+    connect(ui->cancelFlashButton, SIGNAL(clicked()), this, SLOT(reset()));
+    connect(ui->cancelFlashButton, SIGNAL(clicked()), this, SLOT(resetProgressBars()));
+    connect(ui->cancelFlashButton, SIGNAL(clicked()), diskWriter, SLOT(cancelWrite()), Qt::DirectConnection) ;
     connect(ui->loadButton, SIGNAL(clicked()), this, SLOT(getImageFileNameFromUser()));
     connect(ui->writeButton, SIGNAL(clicked()), this, SLOT(writeImageToDevice()));
 
@@ -229,7 +232,8 @@ void Installer::reset(const QString &message)
     ui->loadButton->setEnabled(true);
     ui->hdmiOutputButton->setEnabled(true);
     ui->sdtvOutputButton->setEnabled(false);
-    ui->cancelButton->setEnabled(false);
+    ui->cancelDownloadButton->setEnabled(false);
+    ui->cancelFlashButton->setEnabled(false);
     ui->refreshRemovablesButton->setEnabled(true);
     ui->removableDevicesComboBox->setEnabled(true);
     ui->messageBar->setText(message);
@@ -259,7 +263,6 @@ void Installer::disableControls()
     ui->loadButton->setEnabled(false);
     ui->hdmiOutputButton->setEnabled(false);
     ui->sdtvOutputButton->setEnabled(false);
-    ui->cancelButton->setEnabled(true);
     ui->refreshRemovablesButton->setEnabled(false);
     ui->removableDevicesComboBox->setEnabled(false);
 
@@ -426,6 +429,7 @@ void Installer::updateDevices()
 {
     state = STATE_GET_SUPPORTED_DEVICES;
     disableControls();
+    ui->cancelDownloadButton->setEnabled(true);
 
     ui->messageBar->setText("Getting supported RasPlex devices");
     QUrl url("http://"+m_serverUrl+"/devices");
@@ -436,6 +440,7 @@ void Installer::getDeviceReleases(int index)
 {
     state = STATE_GETTING_LINKS;
     disableControls();
+    ui->cancelDownloadButton->setEnabled(true);
 
 
 #if defined( Q_OS_WIN)
@@ -459,6 +464,7 @@ void Installer::downloadImage()
 {
     state = STATE_DOWNLOADING_IMAGE;
     disableControls();
+    ui->cancelDownloadButton->setEnabled(true);
     selectedVersion = ui->releaseLinks->itemText(ui->releaseLinks->currentIndex());
     QUrl url = ui->releaseLinks->itemData(ui->releaseLinks->currentIndex()).toUrl();
 
@@ -507,7 +513,7 @@ void Installer::downloadImage()
         }
 
         ui->messageBar->setText("Downloading image... please be patient.");
-        ui->cancelButton->setEnabled(true);
+        ui->cancelDownloadButton->setEnabled(true);
         imageHash.reset();
         settings.setValue("preferred/savedir", saveDir);
         savePreferredReleaseVersion(selectedVersion);
@@ -532,6 +538,7 @@ void Installer::getImageFileNameFromUser()
 void Installer::writeImageToDevice()
 {
     disableControls();
+    ui->cancelFlashButton->setEnabled(true);
 
     int idx = ui->removableDevicesComboBox->currentIndex();
     QString destination = ui->removableDevicesComboBox->itemData(idx).toString();
