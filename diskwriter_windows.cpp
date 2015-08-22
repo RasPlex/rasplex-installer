@@ -72,11 +72,11 @@ bool DiskWriter_windows::isOpen()
     return (hRawDisk != INVALID_HANDLE_VALUE && hVolume != INVALID_HANDLE_VALUE);
 }
 
-bool DiskWriter_windows::write(const char *data, qint64 size)
+bool DiskWriter_windows::write(const QByteArray &data)
 {
     DWORD byteswritten;
     bool ok;
-    ok = WriteFile(hRawDisk, data, size, &byteswritten, NULL);
+    ok = WriteFile(hRawDisk, data.constData(), data.size(), &byteswritten, NULL);
     if (!ok) {
         wchar_t *errormessage=NULL;
         FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, NULL, GetLastError(), 0, (LPWSTR)&errormessage, 0, NULL);

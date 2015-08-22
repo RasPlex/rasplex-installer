@@ -19,7 +19,7 @@ private:
     void close();
     void sync();
     bool isOpen();
-    bool write(const char *data, qint64 size);
+    bool write(const QByteArray &data);
 
     HANDLE hVolume;
     HANDLE hRawDisk;
