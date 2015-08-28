@@ -94,6 +94,7 @@ private slots:
     void reset(const QString& message = "Please download and select an image to write.");
     void resetProgressBars();
     void savePreferredReleaseVersion(const QString &version);
+    void savePreferredRemovableDevice(int idx);
 };
 
 #endif // INSTALLER_H

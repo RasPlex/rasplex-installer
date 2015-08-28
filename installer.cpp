@@ -88,6 +88,7 @@ Installer::Installer(QWidget *parent) :
     connect(ui->deviceSelectBox, SIGNAL(currentIndexChanged(int)), this, SLOT(getDeviceReleases(int)));
     connect(ui->releaseLinks, SIGNAL(currentIndexChanged(int)), ui->releaseNotes, SLOT(setCurrentIndex(int)));
     connect(ui->releaseLinks, SIGNAL(currentIndexChanged(QString)), this, SLOT(savePreferredReleaseVersion(QString)));
+    connect(ui->removableDevicesComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(savePreferredRemovableDevice(int)));
 
     ui->videoGroupBox->setVisible(configHandler->implemented());
     adjustSize();
@@ -115,7 +116,13 @@ void Installer::refreshRemovablesList()
 {
     qDebug() << "Refreshing removable devices list";
 
-    QString previouslySelectedDevice = ui->removableDevicesComboBox->currentText();
+    QVariant previouslySelectedDevice;
+    if (ui->removableDevicesComboBox->count() == 0) {
+        previouslySelectedDevice = settings.value("preferred/removableDevice");
+    }
+    else {
+        previouslySelectedDevice = ui->removableDevicesComboBox->currentText();
+    }
     ui->removableDevicesComboBox->clear();
 
     QStringList devNames = devEnumerator->getRemovableDeviceNames();
@@ -125,7 +132,8 @@ void Installer::refreshRemovablesList()
         ui->removableDevicesComboBox->addItem(friendlyNames[i], devNames[i]);
     }
 
-    int idx = ui->removableDevicesComboBox->findText(previouslySelectedDevice,
+    int idx = ui->removableDevicesComboBox->findData(previouslySelectedDevice,
+                                                     Qt::UserRole,
                                                      Qt::MatchFixedString);
     if (idx >= 0) {
         ui->removableDevicesComboBox->setCurrentIndex(idx);
@@ -249,6 +257,11 @@ void Installer::resetProgressBars()
 void Installer::savePreferredReleaseVersion(const QString& version)
 {
     settings.setValue("preferred/release", version);
+}
+
+void Installer::savePreferredRemovableDevice(int idx)
+{
+    settings.setValue("preferred/removableDevice", ui->removableDevicesComboBox->itemData(idx).toString());
 }
 
 void Installer::disableControls()
@@ -571,8 +584,6 @@ void Installer::writeImageToDevice()
 
     state = STATE_WRITING_IMAGE;
     emit proceedToWriteImageToDevice(imageFileName, destination);
-
-
 }
 
 void Installer::selectVideoOutput()
