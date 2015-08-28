@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/icons">
         <file>getrasplex.png</file>
+        <file>refresh57.svg</file>
+        <file>refresh62.svg</file>
     </qresource>
 </RCC>
