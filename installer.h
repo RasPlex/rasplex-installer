@@ -91,7 +91,7 @@ private slots:
     void selectVideoOutput();
     void writingFinished();
     void writingSyncing();
-    void reset(const QString& message = "Please download and select an image to write.");
+    void reset(const QString& message = "Welcome to the RasPlex installer");
     void resetProgressBars();
     void savePreferredReleaseVersion(const QString &version);
     void savePreferredRemovableDevice(int idx);
