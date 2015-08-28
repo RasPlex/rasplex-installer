@@ -68,7 +68,7 @@
       <widget class="QToolButton" name="linksButton">
        <property name="icon">
         <iconset resource="resources.qrc">
-         <normaloff>:/icons/refresh57.svg</normaloff>:/icons/refresh57.svg</iconset>
+         <normaloff>:/icons/refresh57.png</normaloff>:/icons/refresh57.png</iconset>
        </property>
       </widget>
      </item>
@@ -151,7 +151,7 @@
       <widget class="QToolButton" name="refreshRemovablesButton">
        <property name="icon">
         <iconset resource="resources.qrc">
-         <normaloff>:/icons/refresh62.svg</normaloff>:/icons/refresh62.svg</iconset>
+         <normaloff>:/icons/refresh62.png</normaloff>:/icons/refresh62.png</iconset>
        </property>
       </widget>
      </item>
