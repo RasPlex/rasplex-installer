@@ -68,7 +68,7 @@
       <widget class="QToolButton" name="linksButton">
        <property name="icon">
         <iconset resource="resources.qrc">
-         <normaloff>:/icons/refresh57.png</normaloff>:/icons/refresh57.png</iconset>
+         <normaloff>:/icons/refresh62.png</normaloff>:/icons/refresh62.png</iconset>
        </property>
       </widget>
      </item>
