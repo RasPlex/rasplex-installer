@@ -82,7 +82,7 @@ bool DiskWriter_windows::write(const QByteArray &data)
 }
 
 // Adapted from win32 DiskImager
-HANDLE DiskWriter_windows::getHandleOnDevice(const QString& device, DWORD access) const
+HANDLE DiskWriter_windows::getHandleOnDevice(const QString& device, DWORD access)
 {
     HANDLE hDevice;
     const QString devicename = QString("\\\\.\\PhysicalDrive%1").arg(deviceNumberFromName(device));
@@ -98,7 +98,7 @@ HANDLE DiskWriter_windows::getHandleOnDevice(const QString& device, DWORD access
 }
 
 // Adapted from win32 DiskImager
-HANDLE DiskWriter_windows::getHandleOnVolume(const QString &volume, DWORD access) const
+HANDLE DiskWriter_windows::getHandleOnVolume(const QString &volume, DWORD access)
 {
     HANDLE hVolume;
     QString volumename = "\\\\.\\" + volume;
@@ -168,7 +168,7 @@ bool DiskWriter_windows::isVolumeMounted(HANDLE handle) const
     return DeviceIoControl(handle, FSCTL_IS_VOLUME_MOUNTED, NULL, 0, NULL, 0, &junk, NULL);
 }
 
-ULONG DiskWriter_windows::deviceNumberFromName(const QString &device) const
+ULONG DiskWriter_windows::deviceNumberFromName(const QString &device)
 {
     QString volumename = "\\\\.\\" + device;
     if (volumename.endsWith("\\")) {
