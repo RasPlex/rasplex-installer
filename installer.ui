@@ -80,7 +80,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Step 2: Download Image or select a local image file</string>
+      <string>Step 2: Download image or select a local image file</string>
      </property>
     </widget>
    </item>
@@ -131,6 +131,12 @@
        <property name="text">
         <string/>
        </property>
+       <property name="textFormat">
+        <enum>Qt::PlainText</enum>
+       </property>
+       <property name="textInteractionFlags">
+        <set>Qt::NoTextInteraction</set>
+       </property>
       </widget>
      </item>
     </layout>
@@ -138,7 +144,7 @@
    <item>
     <widget class="QLabel" name="removableDevicesLabel">
      <property name="text">
-      <string>Step 3: Select flash target (e.g. you SD card)</string>
+      <string>Step 3: Select flash target (e.g. your SD card)</string>
      </property>
     </widget>
    </item>
