@@ -12,6 +12,8 @@ public:
     explicit DiskWriter_windows(QObject *parent = 0);
     ~DiskWriter_windows();
 
+    static QString errorAsString(DWORD error);
+
 private:
     QFile dev;
 
