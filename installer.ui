@@ -52,7 +52,7 @@
    <item>
     <widget class="QLabel" name="deviceSelectText">
      <property name="text">
-      <string>Step 1: Select your RasPlex device and version</string>
+      <string>Step 1: Select your Raspberry Pi model, and the RasPlex version to use</string>
      </property>
     </widget>
    </item>
