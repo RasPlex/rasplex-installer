@@ -58,8 +58,8 @@ bool DiskWriter_unix::isOpen()
     return dev.isOpen();
 }
 
-bool DiskWriter_unix::write(const char *data, qint64 size)
+bool DiskWriter_unix::write(const QByteArray &data)
 {
-    return dev.write(data, size);
+    return dev.write(data);
 }
 

@@ -1,10 +1,11 @@
 #ifndef INSTALLER_H
 #define INSTALLER_H
 
-#include <QDialog>
-#include <QtXml>
-#include <QNetworkAccessManager>
 #include <QCryptographicHash>
+#include <QDialog>
+#include <QNetworkAccessManager>
+#include <QSettings>
+#include <QtXml>
 
 #include "downloadmanager.h"
 
@@ -40,6 +41,7 @@ private:
     QNetworkRequest createRequest(QUrl &url, qlonglong first, qlonglong last);
     unsigned int getUncompressedImageSize();
     void setImageFileName(QString filename);
+    QString getDefaultSaveDir();
 
     enum {
         RESPONSE_OK = 200,
@@ -70,8 +72,8 @@ private:
     QThread* diskWriterThread;
     DeviceEnumerator* devEnumerator;
     ConfigHandler *configHandler;
-    bool isCancelled;
     static const QString m_serverUrl;
+    QSettings settings;
 
 signals:
     void proceedToWriteImageToDevice(const QString& image, const QString& device);
@@ -79,18 +81,20 @@ signals:
 private slots:
     void handleFinishedDownload(const QByteArray& data);
     void handlePartialData(const QByteArray& data, qlonglong total);
-    void cancel();
     void updateDevices();
     void parseAndSetSupportedDevices(const QByteArray &data);
     void getDeviceReleases(int index);
-    void refreshDeviceList();
+    void refreshRemovablesList();
     void downloadImage();
     void getImageFileNameFromUser();
     void writeImageToDevice();
     void selectVideoOutput();
     void writingFinished();
     void writingSyncing();
-    void reset(const QString& message = "Please download and select an image to write.");
+    void reset(const QString& message = "Welcome to the RasPlex installer");
+    void resetProgressBars();
+    void savePreferredReleaseVersion(const QString &version);
+    void savePreferredRemovableDevice(int idx);
 };
 
 #endif // INSTALLER_H

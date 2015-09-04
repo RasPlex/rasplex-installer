@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
+#include <QByteArray>
 
 class DiskWriter : public QObject
 {
@@ -13,10 +14,9 @@ public:
     DiskWriter(QObject *parent = 0) : QObject(parent) {}
     virtual ~DiskWriter() {}
 
-    void cancelWrite();
-
 public slots:
-    virtual bool writeCompressedImageToRemovableDevice(const QString &filename, const QString& device);
+    void cancelWrite();
+    virtual void writeCompressedImageToRemovableDevice(const QString &filename, const QString& device);
 
 signals:
     void bytesWritten(int);
@@ -31,7 +31,7 @@ protected:
     virtual void close() = 0;
     virtual void sync() = 0;
     virtual bool isOpen() = 0;
-    virtual bool write(const char* data, qint64 size) = 0;
+    virtual bool write(const QByteArray &data) = 0;
 };
 
 #endif // DISKWRITER_H

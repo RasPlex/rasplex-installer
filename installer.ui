@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>555</width>
-    <height>758</height>
+    <width>491</width>
+    <height>791</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,17 +25,10 @@
        <item>
         <widget class="QLabel" name="label_4">
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:24pt;&quot;&gt;GetRasplex &lt;/span&gt;&lt;/p&gt;&lt;p&gt;Official graphical installer for the &lt;a href=&quot;http://rasplex.com&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;rasplex&lt;/span&gt;&lt;/a&gt; project. &lt;/p&gt;&lt;p&gt;Brought to you by Patrik and Dale.&lt;/p&gt;&lt;p&gt;Special thanks to Win32Diskimager project.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:24pt;&quot;&gt;GetRasplex &lt;/span&gt;&lt;/p&gt;&lt;p&gt;Official graphical installer for the &lt;a href=&quot;http://rasplex.com&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;rasplex&lt;/span&gt;&lt;/a&gt; project. &lt;/p&gt;&lt;p&gt;Made possible by the RasPlex devs and testers.&lt;/p&gt;&lt;p&gt;Special thanks to &lt;a href=&quot;http://sourceforge.net/projects/win32diskimager/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Win32Diskimager&lt;/span&gt;&lt;/a&gt; project.&lt;/p&gt;&lt;p&gt;Icon made by &lt;a href=&quot;http://www.freepik.com/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Freepik&lt;/span&gt;&lt;/a&gt; from &lt;a href=&quot;http://www.flaticon.com/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;www.flaticon.com&lt;/span&gt;&lt;/a&gt;.&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://donate.rasplex.com&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Please Donate!&lt;/span&gt;&lt;/a&gt; to support the project and&lt;br/&gt;future development : )&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
-         <property name="openExternalLinks">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>&lt;a href=&quot;http://donate.rasplex.com&quot;&gt;Please Donate!&lt;/a&gt; to support the project and future development : )</string>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
          </property>
          <property name="openExternalLinks">
           <bool>true</bool>
@@ -59,69 +52,47 @@
    <item>
     <widget class="QLabel" name="deviceSelectText">
      <property name="text">
-      <string>Step 1: Select your RasPlex device</string>
+      <string>Step 1: Select your Raspberry Pi model, and the RasPlex version to use</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QComboBox" name="deviceSelectBox"/>
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item>
+      <widget class="QComboBox" name="deviceSelectBox"/>
+     </item>
+     <item>
+      <widget class="QComboBox" name="releaseLinks"/>
+     </item>
+     <item>
+      <widget class="QToolButton" name="linksButton">
+       <property name="icon">
+        <iconset resource="resources.qrc">
+         <normaloff>:/icons/refresh62.png</normaloff>:/icons/refresh62.png</iconset>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item>
-    <widget class="QLabel" name="releaseLabel">
-     <property name="text">
-      <string>Step 2: Select Version</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QComboBox" name="releaseLinks"/>
-   </item>
-   <item>
-    <widget class="QLabel" name="removableDevicesLabel">
-     <property name="text">
-      <string>Step 3: Select flash target (e.g. you SD card)</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QComboBox" name="removableDevicesComboBox"/>
+    <widget class="QStackedWidget" name="releaseNotes"/>
    </item>
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Step 4: Download Image or select a local image file</string>
+      <string>Step 2: Download image or select a local image file</string>
      </property>
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>37</width>
-         <height>17</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="refreshDeiceListButton">
-       <property name="text">
-        <string>&amp;Refresh target list</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="linksButton">
-       <property name="text">
-        <string>&amp;Update links</string>
-       </property>
-      </widget>
-     </item>
+    <widget class="QProgressBar" name="downloadProgressBar">
+     <property name="value">
+      <number>0</number>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,1">
      <item>
       <widget class="QPushButton" name="downloadButton">
        <property name="enabled">
@@ -133,33 +104,23 @@
       </widget>
      </item>
      <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+      <widget class="QPushButton" name="cancelDownloadButton">
+       <property name="enabled">
+        <bool>false</bool>
        </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>28</width>
-         <height>22</height>
-        </size>
+       <property name="text">
+        <string>C&amp;ancel</string>
        </property>
-      </spacer>
+      </widget>
      </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QFormLayout" name="formLayout">
-     <property name="fieldGrowthPolicy">
-      <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-     </property>
-     <item row="0" column="0">
+     <item>
       <widget class="QPushButton" name="loadButton">
        <property name="text">
         <string>Select &amp;image file</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
+     <item>
       <widget class="QLabel" name="fileNameLabel">
        <property name="frameShape">
         <enum>QFrame::StyledPanel</enum>
@@ -170,9 +131,44 @@
        <property name="text">
         <string/>
        </property>
+       <property name="textFormat">
+        <enum>Qt::PlainText</enum>
+       </property>
+       <property name="textInteractionFlags">
+        <set>Qt::NoTextInteraction</set>
+       </property>
       </widget>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="removableDevicesLabel">
+     <property name="text">
+      <string>Step 3: Select flash target (e.g. your SD card)</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <widget class="QComboBox" name="removableDevicesComboBox"/>
+     </item>
+     <item>
+      <widget class="QToolButton" name="refreshRemovablesButton">
+       <property name="icon">
+        <iconset resource="resources.qrc">
+         <normaloff>:/icons/refresh62.png</normaloff>:/icons/refresh62.png</iconset>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Step 4: Write image to target</string>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QGroupBox" name="videoGroupBox">
@@ -292,19 +288,59 @@
     </widget>
    </item>
    <item>
-    <widget class="QStackedWidget" name="releaseNotes"/>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <spacer name="horizontalSpacer_5">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="writeButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>&amp;Write SD card</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancelFlashButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Can&amp;cel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_6">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
    </item>
    <item>
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Step 5: Write image to target</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="writeButton">
-     <property name="text">
-      <string>&amp;Write SD card</string>
+    <widget class="QProgressBar" name="flashProgressBar">
+     <property name="value">
+      <number>0</number>
      </property>
     </widget>
    </item>
@@ -325,20 +361,6 @@
     <widget class="QLabel" name="messageBar">
      <property name="text">
       <string/>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QProgressBar" name="progressBar">
-     <property name="value">
-      <number>0</number>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QPushButton" name="cancelButton">
-     <property name="text">
-      <string>C&amp;ancel</string>
      </property>
     </widget>
    </item>

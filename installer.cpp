@@ -36,7 +36,8 @@ Installer::Installer(QWidget *parent) :
     manager(new DownloadManager(this)),
     state(STATE_IDLE),
     bytesDownloaded(0),
-    imageHash(QCryptographicHash::Md5)
+    imageHash(QCryptographicHash::Md5),
+    settings("RasPlex", "RasPlex Installer")
 {
     ui->setupUi(this);
 
@@ -54,25 +55,28 @@ Installer::Installer(QWidget *parent) :
     connect(diskWriterThread, SIGNAL(finished()), diskWriter, SLOT(deleteLater()));
     connect(this, SIGNAL(proceedToWriteImageToDevice(QString,QString)),
             diskWriter, SLOT(writeCompressedImageToRemovableDevice(QString,QString)));
-    connect(diskWriter, SIGNAL(bytesWritten(int)), ui->progressBar, SLOT(setValue(int)));
+    connect(diskWriter, SIGNAL(bytesWritten(int)), ui->flashProgressBar, SLOT(setValue(int)));
     connect(diskWriter, SIGNAL(syncing()), this, SLOT(writingSyncing()));
     connect(diskWriter, SIGNAL(finished()), this, SLOT(writingFinished()));
     connect(diskWriter, SIGNAL(error(QString)), this, SLOT(reset(QString)));
     diskWriterThread->start();
 
-    refreshDeviceList();
+    connect(ui->refreshRemovablesButton,SIGNAL(clicked()),this,SLOT(refreshRemovablesList()));
+    refreshRemovablesList();
 
     connect(manager, SIGNAL(downloadComplete(QByteArray)), this, SLOT(handleFinishedDownload(QByteArray)));
     connect(manager, SIGNAL(partialData(QByteArray,qlonglong)),
             this, SLOT(handlePartialData(QByteArray,qlonglong)));
     connect(ui->linksButton, SIGNAL(clicked()), this, SLOT(updateDevices()));
     connect(ui->downloadButton, SIGNAL(clicked()), this, SLOT(downloadImage()));
-    connect(ui->cancelButton, SIGNAL(clicked()), this, SLOT(cancel()));
-    connect(ui->cancelButton, SIGNAL(clicked()), manager, SLOT(cancelDownload()));
+    connect(ui->cancelDownloadButton, SIGNAL(clicked()), this, SLOT(reset()));
+    connect(ui->cancelDownloadButton, SIGNAL(clicked()), this, SLOT(resetProgressBars()));
+    connect(ui->cancelDownloadButton, SIGNAL(clicked()), manager, SLOT(cancelDownload()));
+    connect(ui->cancelFlashButton, SIGNAL(clicked()), this, SLOT(reset()));
+    connect(ui->cancelFlashButton, SIGNAL(clicked()), this, SLOT(resetProgressBars()));
+    connect(ui->cancelFlashButton, SIGNAL(clicked()), diskWriter, SLOT(cancelWrite()), Qt::DirectConnection) ;
     connect(ui->loadButton, SIGNAL(clicked()), this, SLOT(getImageFileNameFromUser()));
     connect(ui->writeButton, SIGNAL(clicked()), this, SLOT(writeImageToDevice()));
-
-    connect(ui->refreshDeiceListButton,SIGNAL(clicked()),this,SLOT(refreshDeviceList()));
 
     connect(ui->hdmiOutputButton, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
     connect(ui->sdtvOutputButton, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
@@ -81,18 +85,15 @@ Installer::Installer(QWidget *parent) :
     connect(ui->sdtvMode_2, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
     connect(ui->sdtvMode_3, SIGNAL(clicked()), this, SLOT(selectVideoOutput()));
 
-    connect(ui->releaseLinks, SIGNAL(currentIndexChanged(int)), ui->releaseNotes, SLOT(setCurrentIndex(int)));
     connect(ui->deviceSelectBox, SIGNAL(currentIndexChanged(int)), this, SLOT(getDeviceReleases(int)));
-
-
-
+    connect(ui->releaseLinks, SIGNAL(currentIndexChanged(int)), ui->releaseNotes, SLOT(setCurrentIndex(int)));
+    connect(ui->releaseLinks, SIGNAL(currentIndexChanged(QString)), this, SLOT(savePreferredReleaseVersion(QString)));
+    connect(ui->removableDevicesComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(savePreferredRemovableDevice(int)));
 
     ui->videoGroupBox->setVisible(configHandler->implemented());
     adjustSize();
 
     ui->hdmiOutputButton->setChecked(true);
-    isCancelled = false;
-
 
     setImageFileName("");
     ui->writeButton->setEnabled(false);
@@ -111,9 +112,17 @@ Installer::~Installer()
     delete configHandler;
 }
 
-void Installer::refreshDeviceList()
+void Installer::refreshRemovablesList()
 {
-    qDebug() << "Refreshing device list";
+    qDebug() << "Refreshing removable devices list";
+
+    QVariant previouslySelectedDevice;
+    if (ui->removableDevicesComboBox->count() == 0) {
+        previouslySelectedDevice = settings.value("preferred/removableDevice");
+    }
+    else {
+        previouslySelectedDevice = ui->removableDevicesComboBox->currentText();
+    }
     ui->removableDevicesComboBox->clear();
 
     QStringList devNames = devEnumerator->getRemovableDeviceNames();
@@ -123,17 +132,14 @@ void Installer::refreshDeviceList()
         ui->removableDevicesComboBox->addItem(friendlyNames[i], devNames[i]);
     }
 
-    ui->removableDevicesComboBox->setCurrentIndex(ui->removableDevicesComboBox->count()-1);
-}
-
-void Installer::cancel()
-{
-    if (!isCancelled)
-        isCancelled = true;
-
-    diskWriter->cancelWrite();
-    ui->cancelButton->setEnabled(false);
-    reset();
+    int idx = ui->removableDevicesComboBox->findData(previouslySelectedDevice,
+                                                     Qt::UserRole,
+                                                     Qt::MatchFixedString);
+    if (idx >= 0) {
+        ui->removableDevicesComboBox->setCurrentIndex(idx);
+    } else {
+        ui->removableDevicesComboBox->setCurrentIndex(ui->removableDevicesComboBox->count()-1);
+    }
 }
 
 void Installer::parseAndSetSupportedDevices(const QByteArray &data)
@@ -141,7 +147,13 @@ void Installer::parseAndSetSupportedDevices(const QByteArray &data)
     qDebug() << "Devices:" << data;
     SimpleJsonParser parser(data);
 
-    QString previouslySelectedDevice = ui->deviceSelectBox->currentText();
+    QString previouslySelectedDevice;
+    if (ui->deviceSelectBox->count() == 0) {
+        previouslySelectedDevice = settings.value("preferred/device").toString();
+    }
+    else {
+        previouslySelectedDevice = ui->deviceSelectBox->currentText();
+    }
     ui->deviceSelectBox->clear();
 
     JsonArray devices = parser.getJsonArray();
@@ -157,8 +169,8 @@ void Installer::parseAndSetSupportedDevices(const QByteArray &data)
     if (idx >= 0) {
         ui->deviceSelectBox->setCurrentIndex(idx);
     }
+    settings.setValue("preferred/device", ui->deviceSelectBox->currentText());
 
-    reset();
     getDeviceReleases(ui->deviceSelectBox->currentIndex());
 }
 
@@ -167,7 +179,13 @@ void Installer::parseAndSetLinks(const QByteArray &data)
     SimpleJsonParser parser(data);
     qDebug()<< "Links:" << data;
 
-    QString previouslySelectedRelease = ui->releaseLinks->currentText();
+    QString previouslySelectedRelease;
+    if (ui->releaseLinks->count() == 0) {
+        previouslySelectedRelease = settings.value("preferred/release").toString();
+    }
+    else {
+        previouslySelectedRelease = ui->releaseLinks->currentText();
+    }
     ui->releaseLinks->clear();
 
     /* Clear all release notes */
@@ -199,10 +217,10 @@ void Installer::parseAndSetLinks(const QByteArray &data)
                                          Qt::MatchFixedString);
     if (idx >= 0) {
         ui->releaseLinks->setCurrentIndex(idx);
+        ui->releaseNotes->setCurrentIndex(idx);
     }
 
     reset();
-
 }
 
 void Installer::reset(const QString &message)
@@ -212,7 +230,9 @@ void Installer::reset(const QString &message)
     if (imageFile.isOpen()) {
         imageFile.close();
     }
+    ui->deviceSelectBox->blockSignals(false);
     ui->deviceSelectBox->setEnabled(true);
+    ui->releaseLinks->blockSignals(false);
     ui->releaseLinks->setEnabled(true);
     ui->linksButton->setEnabled(true);
     ui->downloadButton->setEnabled(true);
@@ -220,26 +240,43 @@ void Installer::reset(const QString &message)
     ui->loadButton->setEnabled(true);
     ui->hdmiOutputButton->setEnabled(true);
     ui->sdtvOutputButton->setEnabled(false);
-    ui->cancelButton->setEnabled(false);
-    ui->refreshDeiceListButton->setEnabled(true);
+    ui->cancelDownloadButton->setEnabled(false);
+    ui->cancelFlashButton->setEnabled(false);
+    ui->refreshRemovablesButton->setEnabled(true);
     ui->removableDevicesComboBox->setEnabled(true);
-    isCancelled = false;
     ui->messageBar->setText(message);
 
+}
+
+void Installer::resetProgressBars()
+{
+    ui->downloadProgressBar->setValue(0);
+    ui->flashProgressBar->setValue(0);
+}
+
+void Installer::savePreferredReleaseVersion(const QString& version)
+{
+    settings.setValue("preferred/release", version);
+}
+
+void Installer::savePreferredRemovableDevice(int idx)
+{
+    settings.setValue("preferred/removableDevice", ui->removableDevicesComboBox->itemData(idx).toString());
 }
 
 void Installer::disableControls()
 {
     ui->deviceSelectBox->setEnabled(false);
+    ui->deviceSelectBox->blockSignals(true);
     ui->releaseLinks->setEnabled(false);
+    ui->releaseLinks->blockSignals(true);
     ui->linksButton->setEnabled(false);
     ui->downloadButton->setEnabled(false);
     ui->writeButton->setEnabled(false);
     ui->loadButton->setEnabled(false);
     ui->hdmiOutputButton->setEnabled(false);
     ui->sdtvOutputButton->setEnabled(false);
-    ui->cancelButton->setEnabled(true);
-    ui->refreshDeiceListButton->setEnabled(false);
+    ui->refreshRemovablesButton->setEnabled(false);
     ui->removableDevicesComboBox->setEnabled(false);
 
 }
@@ -319,6 +356,18 @@ void Installer::setImageFileName(QString filename)
     ui->fileNameLabel->setText(filename);
 }
 
+QString Installer::getDefaultSaveDir()
+{
+    static QString defaultDir;
+    if (defaultDir.isEmpty()) {
+        defaultDir = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+        if (defaultDir.isEmpty()) {
+            defaultDir = QDir::homePath();
+        }
+    }
+    return defaultDir;
+}
+
 void Installer::handleFinishedDownload(const QByteArray &data)
 {
     switch (state) {
@@ -336,7 +385,10 @@ void Installer::handleFinishedDownload(const QByteArray &data)
         downloadUrl = downloadUrl.trimmed();
         qDebug() << "Got url" << downloadUrl;
         int idx = ui->releaseLinks->findData(downloadUrl);
-        ui->releaseLinks->setCurrentIndex(idx);
+        if (idx >= 0) {
+            ui->releaseLinks->setCurrentIndex(idx);
+            ui->releaseNotes->setCurrentIndex(idx);
+        }
         reset();
         ui->downloadButton->click();
         break;
@@ -370,17 +422,13 @@ void Installer::handlePartialData(const QByteArray &data, qlonglong total)
     bytesDownloaded += data.size();
 
     // Update progress bar
-    ui->progressBar->setMaximum(total);
-    ui->progressBar->setValue(bytesDownloaded);
+    ui->downloadProgressBar->setMaximum(total);
+    ui->downloadProgressBar->setValue(bytesDownloaded);
     qDebug() << bytesDownloaded << "/" << total << "=" << (qreal)bytesDownloaded/total * 100 << "%";
 
     if (bytesDownloaded == total) {
         imageFile.close();
         ui->messageBar->setText("Download complete, verifying checksum...");
-
-
-
-
         if (isChecksumValid()) {
             reset("Download complete, verifying checksum... Done!");
         }
@@ -394,6 +442,7 @@ void Installer::updateDevices()
 {
     state = STATE_GET_SUPPORTED_DEVICES;
     disableControls();
+    ui->cancelDownloadButton->setEnabled(true);
 
     ui->messageBar->setText("Getting supported RasPlex devices");
     QUrl url("http://"+m_serverUrl+"/devices");
@@ -404,6 +453,7 @@ void Installer::getDeviceReleases(int index)
 {
     state = STATE_GETTING_LINKS;
     disableControls();
+    ui->cancelDownloadButton->setEnabled(true);
 
 
 #if defined( Q_OS_WIN)
@@ -415,8 +465,10 @@ void Installer::getDeviceReleases(int index)
 #endif
 
     QString deviceName = ui->deviceSelectBox->itemText(index);
-    QString deviceId = ui->deviceSelectBox->itemData(index).toString();
+    settings.setValue("preferred/device", deviceName);
     ui->messageBar->setText("Getting releases for "+deviceName);
+
+    QString deviceId = ui->deviceSelectBox->itemData(index).toString();
     QUrl url("http://"+m_serverUrl+"/install?platform="+PLATFORM+"&device="+deviceId);
     manager->get(url);
 }
@@ -425,6 +477,7 @@ void Installer::downloadImage()
 {
     state = STATE_DOWNLOADING_IMAGE;
     disableControls();
+    ui->cancelDownloadButton->setEnabled(true);
     selectedVersion = ui->releaseLinks->itemText(ui->releaseLinks->currentIndex());
     QUrl url = ui->releaseLinks->itemData(ui->releaseLinks->currentIndex()).toUrl();
 
@@ -441,20 +494,22 @@ void Installer::downloadImage()
         // Try to find file name in url
         QString newFileName = url.toString().section('/',-1,-1);
 
-        qDebug() << QDir::homePath() + "/" + newFileName;
+        QString saveDir = settings.value("preferred/savedir", getDefaultSaveDir()).toString();
 
-        QString savedir = QFileDialog::getExistingDirectory(this, tr("Directory To Store Image"),
-                                                    QDir::homePath(),
+        qDebug() << saveDir + "/" + newFileName;
+
+        saveDir = QFileDialog::getExistingDirectory(this, tr("Directory To Store Image"),
+                                                    saveDir,
                                                     QFileDialog::ShowDirsOnly
                                                     | QFileDialog::DontResolveSymlinks);
 
 
-        newFileName = savedir +QDir::separator ()+ newFileName;
+        newFileName = saveDir + QDir::separator() + newFileName;
         if (!newFileName.endsWith(".img.gz")) {
             newFileName += ".img.gz";
         }
 
-        if (savedir.isEmpty() || newFileName.isEmpty()) {
+        if (saveDir.isEmpty() || newFileName.isEmpty()) {
             reset();
             return;
         }
@@ -471,25 +526,20 @@ void Installer::downloadImage()
         }
 
         ui->messageBar->setText("Downloading image... please be patient.");
-        ui->cancelButton->setEnabled(true);
+        ui->cancelDownloadButton->setEnabled(true);
         imageHash.reset();
+        settings.setValue("preferred/savedir", saveDir);
+        savePreferredReleaseVersion(selectedVersion);
     }
     manager->get(url);
 }
 
 void Installer::getImageFileNameFromUser()
 {
-
-    QString filename = QFileDialog::getOpenFileName(this, "Open rasplex image", QDir::homePath());
-
-    if (!filename.endsWith(".img.gz"))
-    {
-        QMessageBox::information(this, tr(" "), "You must select a .img.gz file.");
-        return;
-    }
-
-
-    if (filename.isNull()) {
+    QString loadDir = settings.value("preferred/savedir", getDefaultSaveDir()).toString();
+    QString filename = QFileDialog::getOpenFileName(this, "Open rasplex image", loadDir,
+                                                    "Compressed raw image (*img.gz)");
+    if (filename.isEmpty()) {
         return;
     }
 
@@ -501,6 +551,7 @@ void Installer::getImageFileNameFromUser()
 void Installer::writeImageToDevice()
 {
     disableControls();
+    ui->cancelFlashButton->setEnabled(true);
 
     int idx = ui->removableDevicesComboBox->currentIndex();
     QString destination = ui->removableDevicesComboBox->itemData(idx).toString();
@@ -522,8 +573,8 @@ void Installer::writeImageToDevice()
         return;
     }
 
-    ui->progressBar->setValue(0);
-    ui->progressBar->setMaximum(getUncompressedImageSize());
+    ui->flashProgressBar->setValue(0);
+    ui->flashProgressBar->setMaximum(getUncompressedImageSize());
     ui->messageBar->setText("Writing image to "+destination);
 
     // DiskWriter will re-open the image file.
@@ -533,8 +584,6 @@ void Installer::writeImageToDevice()
 
     state = STATE_WRITING_IMAGE;
     emit proceedToWriteImageToDevice(imageFileName, destination);
-
-
 }
 
 void Installer::selectVideoOutput()
@@ -575,6 +624,7 @@ void Installer::writingFinished()
     // Make sure the config is updated
     selectVideoOutput();
 
+    ui->flashProgressBar->setValue(ui->flashProgressBar->maximum());
     reset("Writing done!");
 }
 
