@@ -15,7 +15,7 @@ private:
     bool checkIfUSB(const QString& device) const;
     QStringList getDeviceNamesFromSysfs() const;
 #if defined(Q_OS_LINUX)
-    quint64 driveSize(const QString &device) const;
+    qint64 driveSize(const QString &device) const;
     QStringList getPartitionsInfo(const QString &device) const;
 #endif
 };

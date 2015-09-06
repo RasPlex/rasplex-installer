@@ -59,14 +59,14 @@ QStringList DeviceEnumerator_unix::getUserFriendlyNames(const QStringList &devic
 
     foreach (QString s, devices) {
 #ifdef Q_OS_LINUX
-        quint64 size = driveSize(s);
+        qint64 size = driveSize(s);
         QStringList partInfo = getPartitionsInfo(s);
 
         QTextStream friendlyName(&s);
         friendlyName.setRealNumberNotation(QTextStream::FixedNotation);
         friendlyName.setRealNumberPrecision(2);
         friendlyName << " (";
-        if (size) {
+        if (size > 0) {
             friendlyName << size/(1024*1024*1024.0) << " GB";
         }
         else {
@@ -192,14 +192,14 @@ QStringList DeviceEnumerator_unix::getDeviceNamesFromSysfs() const
 }
 
 #if defined(Q_OS_LINUX)
-quint64 DeviceEnumerator_unix::driveSize(const QString& device) const
+qint64 DeviceEnumerator_unix::driveSize(const QString& device) const
 {
     blkid_probe pr;
 
     pr = blkid_new_probe_from_filename(qPrintable(device));
     if (!pr) {
         qDebug() << "Failed to open" << device;
-        return 0;
+        return -1;
     }
 
     blkid_loff_t size = blkid_probe_get_size(pr);
