@@ -6,6 +6,7 @@
 #include <QProcess>
 #if defined(Q_OS_LINUX)
 #include <blkid/blkid.h>
+#include <unistd.h>
 #endif
 
 #define USE_ONLY_USB_DEVICES_ON_OSX 1
@@ -65,7 +66,13 @@ QStringList DeviceEnumerator_unix::getUserFriendlyNames(const QStringList &devic
         friendlyName.setRealNumberNotation(QTextStream::FixedNotation);
         friendlyName.setRealNumberPrecision(2);
         friendlyName << " (";
-        friendlyName << size/(1024*1024*1024.0) << " GB, partitions: ";
+        if (size) {
+            friendlyName << size/(1024*1024*1024.0) << " GB";
+        }
+        else {
+            friendlyName << "??? GB";
+        }
+        friendlyName << ", partitions: ";
         foreach (QString partition, partInfo) {
             friendlyName << partition << ", ";
         }
@@ -134,8 +141,13 @@ bool DeviceEnumerator_unix::checkIsMounted(const QString &device) const
 bool DeviceEnumerator_unix::checkIfUSB(const QString &device) const
 {
 #ifdef Q_OS_LINUX
-    //TODO
-    return true;
+    QString path = "/sys/block/" + device;
+    QByteArray devPath(256, '\0');
+    ssize_t rc = readlink(path.toLocal8Bit().data(), devPath.data(), devPath.size());
+    if (rc && devPath.contains("usb")) {
+        return true;
+    }
+    return false;
 #else
     QProcess lssize;
     lssize.start(QString("diskutil info %1").arg(device), QIODevice::ReadOnly);
@@ -168,7 +180,10 @@ QStringList DeviceEnumerator_unix::getDeviceNamesFromSysfs() const
             continue;
         }
 
-        if (device.startsWith("mmcblk") || device.startsWith("sd")) {
+        if (device.startsWith("mmcblk")) {
+            names << device;
+        }
+        else if (device.startsWith("sd") && checkIfUSB(device)) {
             names << device;
         }
     }
@@ -184,7 +199,7 @@ quint64 DeviceEnumerator_unix::driveSize(const QString& device) const
     pr = blkid_new_probe_from_filename(qPrintable(device));
     if (!pr) {
         qDebug() << "Failed to open" << device;
-        return -1;
+        return 0;
     }
 
     blkid_loff_t size = blkid_probe_get_size(pr);
