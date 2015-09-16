@@ -73,10 +73,11 @@ bool DiskWriter_windows::write(const QByteArray &data)
     bool ok;
     ok = WriteFile(hRawDisk, data.constData(), data.size(), &byteswritten, NULL);
     if (!ok) {
-        const QString errText = errorAsString(GetLastError());
+        const DWORD e = GetLastError();
+        const QString errText = errorAsString(e);
         QMessageBox::critical(NULL, QObject::tr("Write Error"),
                               QObject::tr("An error occurred when attempting to write data to handle.\n"
-                                          "Error %1: %2").arg(GetLastError()).arg(errText));
+                                          "Error %1: %2").arg(e).arg(errText));
     }
     return ok;
 }
@@ -89,10 +90,11 @@ HANDLE DiskWriter_windows::getHandleOnDevice(const QString& device, DWORD access
     qDebug() << devicename;
     hDevice = CreateFile(devicename.toStdWString().c_str(), access, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
     if (hDevice == INVALID_HANDLE_VALUE) {
-        const QString errText = errorAsString(GetLastError());
+        const DWORD e = GetLastError();
+        const QString errText = errorAsString(e);
         QMessageBox::critical(NULL, QObject::tr("Device Error"),
                               QObject::tr("An error occurred when attempting to get a handle on the device.\n"
-                                          "Error %1: %2").arg(GetLastError()).arg(errText));
+                                          "Error %1: %2").arg(e).arg(errText));
     }
     return hDevice;
 }
@@ -108,10 +110,11 @@ HANDLE DiskWriter_windows::getHandleOnVolume(const QString &volume, DWORD access
     qDebug() << volumename;
     hVolume = CreateFile(volumename.toStdWString().c_str(), access, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
     if (hVolume == INVALID_HANDLE_VALUE) {
-        const QString errText = errorAsString(GetLastError());
+        const DWORD e = GetLastError();
+        const QString errText = errorAsString(e);
         QMessageBox::critical(NULL, QObject::tr("Volume Error"),
                               QObject::tr("An error occurred when attempting to get a handle on the volume.\n"
-                                          "Error %1: %2").arg(GetLastError()).arg(errText));
+                                          "Error %1: %2").arg(e).arg(errText));
     }
     return hVolume;
 }
@@ -123,10 +126,11 @@ bool DiskWriter_windows::getLockOnVolume(HANDLE handle) const
     bool ok;
     ok = DeviceIoControl(handle, FSCTL_LOCK_VOLUME, NULL, 0, NULL, 0, &junk, NULL);
     if (!ok) {
-        const QString errText = errorAsString(GetLastError());
+        const DWORD e = GetLastError();
+        const QString errText = errorAsString(e);
         QMessageBox::critical(NULL, QObject::tr("Lock Error"),
                               QObject::tr("An error occurred when attempting to lock the volume.\n"
-                                          "Error %1: %2").arg(GetLastError()).arg(errText));
+                                          "Error %1: %2").arg(e).arg(errText));
     }
     return ok;
 }
@@ -138,10 +142,11 @@ bool DiskWriter_windows::removeLockOnVolume(HANDLE handle) const
     bool ok;
     ok = DeviceIoControl(handle, FSCTL_UNLOCK_VOLUME, NULL, 0, NULL, 0, &junk, NULL);
     if (!ok) {
-        const QString errText = errorAsString(GetLastError());
+        const DWORD e = GetLastError();
+        const QString errText = errorAsString(e);
         QMessageBox::critical(NULL, QObject::tr("Unlock Error"),
                               QObject::tr("An error occurred when attempting to unlock the volume.\n"
-                                          "Error %1: %2").arg(GetLastError()).arg(errText));
+                                          "Error %1: %2").arg(e).arg(errText));
     }
     return ok;
 }
@@ -153,10 +158,11 @@ bool DiskWriter_windows::unmountVolume(HANDLE handle) const
     bool ok;
     ok = DeviceIoControl(handle, FSCTL_DISMOUNT_VOLUME, NULL, 0, NULL, 0, &junk, NULL);
     if (!ok) {
-        const QString errText = errorAsString(GetLastError());
+        const DWORD e = GetLastError();
+        const QString errText = errorAsString(e);
         QMessageBox::critical(NULL, QObject::tr("Dismount Error"),
                               QObject::tr("An error occurred when attempting to dismount the volume.\n"
-                                          "Error %1: %2").arg(GetLastError()).arg(errText));
+                                          "Error %1: %2").arg(e).arg(errText));
     }
     return ok;
 }
@@ -191,10 +197,22 @@ QString DiskWriter_windows::errorAsString(DWORD error)
         return QString();
     }
 
+    QString message;
     LPSTR messageBuffer = NULL;
-    size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                                 NULL, error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
-    const QString message = QString::fromUtf16((const ushort*)messageBuffer, size);
+    DWORD ret = FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | // The function will allocate space for pBuffer.
+        FORMAT_MESSAGE_FROM_SYSTEM | // System wide message.
+        FORMAT_MESSAGE_IGNORE_INSERTS, // No inserts.
+        NULL, // Message is not in a module.
+        error, // Message identifier.
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language.
+        (LPTSTR)&messageBuffer, // Buffer to hold the text string.
+        256, // The function will allocate at least this much for pBuffer.
+        NULL // No inserts.
+    );
+    if (ret) {
+        message = QString::fromUtf16((const ushort*)messageBuffer, ret);
+    }
     LocalFree(messageBuffer);
 
     return message;
